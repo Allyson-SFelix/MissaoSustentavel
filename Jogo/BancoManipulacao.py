@@ -1,6 +1,7 @@
 import json
 import os
-#from Model.users import User
+from Model.users import User
+from .StaticDefs.PreCond import PreCond
 
 # pega o diretório onde o arquivo BancoManipulacao.py está
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -22,8 +23,11 @@ class BancoManip:
         
     def atualizarFaseAtual(self,user):
         self.dados[user.username]["FaseAtual"]=user.faseAtual
-        self.escrever()
-        return True
+        if PreCond.verificarFase(user.faseAtual) :
+            self.escrever()
+            return True
+        else:
+            return False
         
     def buscaDados(self,username):
         if username in self.dados:
