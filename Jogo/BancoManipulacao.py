@@ -33,3 +33,33 @@ class BancoManip:
             self.criarDict(username)
             self.escrever()
             return User(username,0)
+
+    def criarArquivo(self):
+        with open(ARQUIVO_JSON,"w") as arquivo:
+            json.dump({}, arquivo, indent=2)
+            
+    
+    def criarDict(self,username):
+        self.dados[username]={"FaseAtual":0}
+        
+    
+    def inicializarAcessoBanco(self,username):
+    #verifico se existe ou nao, depois direciono para as outras funções   
+        if not os.path.exists(ARQUIVO_JSON): #crio arquivo
+            self.criarArquivo()
+            self.criarDict(username)
+            self.escrever()
+            return "USER NOVO, SALVO"
+        else: #leio arquivo
+            self.ler()
+            return self.buscaDados(username)
+
+
+
+
+banco = BancoManip()
+
+resposta=banco.inicializarAcessoBanco("tatu")
+print(resposta)
+booResposta=banco.atualizarFaseAtual(User("tatu",2))
+print(booResposta)
