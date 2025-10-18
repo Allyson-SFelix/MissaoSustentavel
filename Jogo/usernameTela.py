@@ -13,7 +13,13 @@ class UsernameTela:
 
         
     def salvarInf(self,username,label):
-        return 
+        if len(username)<=25 and len(username)>0:
+           self.username=username
+           label.set_title('LEGAL')
+           self.menu.disable() 
+        else:
+            label.set_title('Campo vazio')
+     
     
     def run(self):
         label=self.menu.add.label('Digite seu username',max_char=100)
