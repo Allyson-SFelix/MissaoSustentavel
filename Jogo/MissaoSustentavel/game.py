@@ -79,3 +79,30 @@ class Jogo:
             self.jogador.rect.topleft = (60, 60)
         self.jogador.mochila.clear()
         self.estado = "jogando"
+
+
+    def desenhar_grade(self):
+        for x in range(0, self.screen.get_width(), 40):
+            pygame.draw.line(self.screen, COR_GRADE, (x,0), (x,self.screen.get_height()))
+            
+        for y in range(0, self.screen.get_height(), 40):
+            pygame.draw.line(self.screen, COR_GRADE, (0,y), (self.screen.get_width(),y))
+
+    def desenhar_hud(self):
+        lvl = self.niveis[self.atual]
+        text1 = f"Fase {lvl.numero} | Meta: {lvl.meta_itens} | Coletados: {lvl.coletados} | Mochila: {len(self.jogador.mochila)}/{self.jogador.capacidade}"
+        text2 = "Controles: [E] Pegar  [Q] Descartar  [R] Reiniciar  [Esc] Sair"
+
+        text1_surface = self.font.render(text1, True, (0, 0, 0))
+        text2_surface = self.font.render(text2, True, (0, 0, 0))
+
+        margin = 10
+        bottom_y = ALTURA - margin
+
+        self.screen.blit(text2_surface, (margin, bottom_y - text2_surface.get_height()))
+
+        self.screen.blit(text1_surface, (margin, bottom_y - text2_surface.get_height() - text1_surface.get_height() - 4))
+
+    def _desenhar_texto(self, s, pos):
+        surf = self.font.render(s, True, (235, 235, 235))
+        self.screen.blit(surf, pos)
