@@ -105,3 +105,175 @@ class Jogo:
     def _desenhar_texto(self, s, pos):
         surf = self.font.render(s, True, (235, 235, 235))
         self.screen.blit(surf, pos)
+
+    def processar_eventos(self):
+        """Processa eventos do teclado e mouse"""
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                return False
+            
+            # Eventos do menu de erro de lixeira
+            if self.estado == "erro_lixeira" and self.menu_erro_lixeira:
+                if e.type == pygame.MOUSEBUTTONDOWN:
+                    self._confirmar_erro_lixeira()
+            
+            # Eventos do menu de conclusão de fase
+            if self.estado == "fase_completa" and self.menu_fase_completa:
+                if e.type == pygame.MOUSEMOTION:
+                    self.menu_fase_completa.atualizar_mouse_hover(e.pos)
+                elif e.type == pygame.MOUSEBUTTONDOWN:
+                    resultado = self.menu_fase_completa.processar_clique_mouse(e.pos)
+                    if resultado == "continuar":
+                        self._avancar_fase()
+                    elif resultado == "sair":
+                        return False
+            
+            # Eventos do mouse para o centro de reciclagem
+            if self.estado == "centro_aberto" and self.interface_centro:
+                if e.type == pygame.MOUSEBUTTONDOWN:
+                    self.interface_centro.processar_mouse_pressionado(e.pos)
+                elif e.type == pygame.MOUSEMOTION:
+                    self.interface_centro.processar_mouse_movimento(e.pos)
+                elif e.type == pygame.MOUSEBUTTONUP:
+                    resultado = self.interface_centro.processar_mouse_solto(e.pos)
+                    foi_depositado, indice, houve_erro, tipo_lixo, tipo_lixeira_correta = resultado
+                    
+                    if houve_erro:
+                        # Erro! Mostrar menu de erro
+                        self.estado = "erro_lixeira"
+                        self.menu_erro_lixeira = MenuErroLixeira(tipo_lixo, tipo_lixeira_correta)
+                    elif foi_depositado:
+                        # Sucesso! Remove o item da mochila do jogador
+                        if 0 <= indice < len(self.jogador.mochila):
+                            del self.jogador.mochila[indice]
+                        # Atualiza interface
+                        self.interface_centro.atualizar_inventario(self.jogador.mochila)
+            
+            if e.type == pygame.KEYDOWN:
+                # Menu de erro de lixeira
+                if self.estado == "erro_lixeira" and self.menu_erro_lixeira:
+                    if self.menu_erro_lixeira.processar_entrada(e.key):
+                        self._confirmar_erro_lixeira()
+                    continue
+                
+                # Menu de conclusão de fase
+                if self.estado == "fase_completa" and self.menu_fase_completa:
+                    resultado = self.menu_fase_completa.processar_entrada_teclado(e.key)
+                    if resultado == "continuar":
+                        self._avancar_fase()
+                    elif resultado == "sair":
+                        return False
+                    continue
+                
+                # Sair do jogo ou do centro
+                if e.key == pygame.K_ESCAPE:
+                    if self.estado == "centro_aberto":
+                        # Sair do centro
+                        self._sair_centro()
+                    else:
+                        return False
+                
+                # Entrar no centro (somente modo jogando)
+                if e.key == pygame.K_f and self.estado == "jogando":
+                    self._tentar_entrar_centro()
+                
+                # Reiniciar fase
+                if e.key == pygame.K_r:
+                    if self.atual >= len(self.niveis):
+                        self.atual = 0
+                    self._carregar_nivel()
+                    continue
+                
+                # Controles de coleta (somente quando jogando)
+                if self.estado == "jogando" and self.atual < len(self.niveis):
+                    if e.key == pygame.K_e:
+                        # Coletar item
+                        lvl = self.niveis[self.atual]
+                        item_coletado = self.jogador.tentar_coletar(lvl.itens)
+                        if item_coletado:
+                            lvl.itens.remove(item_coletado)
+                    
+                    if e.key == pygame.K_q:
+                        # Descartar na lixeira (modo antigo, mantido para compatibilidade)
+                        lvl = self.niveis[self.atual]
+                        depositado = self.jogador.tentar_depositar(lvl.lixeiras)
+                        if depositado:
+                            lvl.coletados += depositado
+                
+                # Confirmar saída do centro com ENTER
+                if e.key == pygame.K_RETURN and self.estado == "centro_aberto":
+                    self._sair_centro()
+        
+        return True
+    
+    def _tentar_entrar_centro(self):
+        """Tenta entrar no centro de reciclagem"""
+        # Validar se tem itens na mochila
+        if len(self.jogador.mochila) == 0:
+            # Não tem itens, não pode entrar
+            return
+        
+        lvl = self.niveis[self.atual]
+        
+        if not hasattr(lvl, 'centros') or not lvl.centros:
+            return
+        
+        # Procura o centro mais próximo
+        centro_encontrado = None
+        for centro in lvl.centros:
+            if self.jogador.rect.colliderect(centro.rect.inflate(24, 16)):
+                centro_encontrado = centro
+                break
+        
+        if not centro_encontrado:
+            return
+        
+        # Entra no centro
+        self.estado = "centro_aberto"
+        self.jogador.dentro_centro = centro_encontrado
+        self.jogador.posicao_antes_centro = self.jogador.rect.copy()
+        
+        # Afastar o inimigo (na fase 4) para longe do centro
+        if lvl.inimigo:
+            self._afastar_inimigo_do_centro(centro_encontrado, lvl)
+        
+        # Cria a interface do centro
+        tipos_lixeiras = centro_encontrado.lixeiras
+        self.interface_centro = CentroInterfaceUI([l.tipo for l in tipos_lixeiras])
+        self.interface_centro.atualizar_inventario(self.jogador.mochila)
+    
+    def _sair_centro(self):
+        """Sai do centro de reciclagem e volta ao mapa"""
+        if not self.interface_centro:
+            return
+        
+        lvl = self.niveis[self.atual]
+        
+        # Conta os itens depositados
+        total_depositado = self.interface_centro.obter_total_depositado()
+        if total_depositado > 0:
+            lvl.coletados += total_depositado
+        
+        # Retorna o jogador à posição anterior
+        if self.jogador.posicao_antes_centro:
+            self.jogador.rect = self.jogador.posicao_antes_centro.copy()
+        
+        # Limpa o estado
+        self.estado = "jogando"
+        self.jogador.dentro_centro = None
+        self.interface_centro.limpar()
+        self.interface_centro = None
+    
+    def _avancar_fase(self):
+        """Avança para a próxima fase"""
+        self.atual += 1
+        
+        # Fechar menu de conclusão
+        self.menu_fase_completa = None
+        
+        if self.atual >= len(self.niveis):
+            # Todas as fases concluídas
+            self.estado = "vitoria"
+        else:
+            # Carregar próxima fase
+            self._carregar_nivel()
