@@ -80,7 +80,6 @@ class Jogo:
         self.jogador.mochila.clear()
         self.estado = "jogando"
 
-
     def desenhar_grade(self):
         for x in range(0, self.screen.get_width(), 40):
             pygame.draw.line(self.screen, COR_GRADE, (x,0), (x,self.screen.get_height()))

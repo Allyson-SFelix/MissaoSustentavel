@@ -1,27 +1,38 @@
 import pygame_menu
 import pygame
 import sys
-#from .game import Game
+from MissaoSustentavel.game import Jogo
 
 class MenuPrincipal:
     def __init__(self, tela, usuario):
-        self.tela =tela
+        self.tela = tela
         self.usuario = usuario
-        
-        #config tela e criacao
-        self.menu=pygame_menu.Menu(f'Bem-vindo, {self.usuario.username}!',1000,600, theme=pygame_menu.themes.THEME_DARK) 
 
-    
+        self.menu = pygame_menu.Menu(
+            f'Bem-vindo, {self.usuario.username}!',
+            1000,
+            600,
+            theme=pygame_menu.themes.THEME_DARK
+        )
+
+        imagem_original = pygame.image.load("assets/logo.png").convert_alpha()
+        logo_redimensionado = pygame.transform.scale(imagem_original, (652 , 276))
+        self.menu.add.surface(
+            logo_redimensionado,
+            margin=(0, 5)
+        )
+
     def start_game(self):
-            game = Game(self.usuario) # passa o objeto como parametro
-            game.run()
+        self.menu.disable()
+        jogo = Jogo(self.usuario)
+        jogo.executar()
 
     def carregar_game(self):
-        return
+        pass
     
-    def fechar_jogo(event):
-        pygame.quit()  # fecha a interface
-        sys.exit()     # para de rodar
+    def fechar_jogo(self):
+        pygame.quit()
+        sys.exit()
     
     def run(self):
         self.menu.add.button('Iniciar Jogo', self.start_game)

@@ -1,7 +1,7 @@
 import json
 import os
 from Model.users import User
-from .StaticDefs.PreCond import PreCond
+from StaticDefs.PreCond import PreCond
 
 # pega o diretório onde o arquivo BancoManipulacao.py está
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
