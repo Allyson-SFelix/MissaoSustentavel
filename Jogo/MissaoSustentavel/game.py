@@ -277,3 +277,161 @@ class Jogo:
         else:
             # Carregar próxima fase
             self._carregar_nivel()
+
+    def _confirmar_erro_lixeira(self):
+        """Confirma o erro e reinicia a fase"""
+        # Fechar menu de erro
+        self.menu_erro_lixeira = None
+        
+        # Sair do centro
+        self.estado = "centro_aberto"
+        self.interface_centro = None
+        self.jogador.dentro_centro = None
+        
+        # Reiniciar a fase completamente
+        self._carregar_nivel()
+    
+    def _afastar_inimigo_do_centro(self, centro, nivel):
+        """Afasta o inimigo para longe do centro quando jogador entra"""
+        if not nivel.inimigo:
+            return
+        
+        import math
+        
+        # Definir distância mínima desejada
+        distancia_minima = 300
+        
+        # Calcular direção oposta do centro
+        dx = nivel.inimigo.rect.centerx - centro.rect.centerx
+        dy = nivel.inimigo.rect.centery - centro.rect.centery
+        
+        # Se o inimigo já está longe, não faz nada
+        distancia = math.hypot(dx, dy)
+        if distancia >= distancia_minima:
+            return
+        
+        # Normalizar a direção
+        if distancia > 0:
+            dx = dx / distancia
+            dy = dy / distancia
+        else:
+            # Se está no mesmo lugar, afastar para canto aleatório
+            dx = 1
+            dy = 0
+        
+        # Mover inimigo para distância mínima
+        novo_x = centro.rect.centerx + dx * distancia_minima
+        novo_y = centro.rect.centery + dy * distancia_minima
+        
+        # Clampar dentro dos limites do mapa
+        novo_x = max(50, min(novo_x, LARGURA - 50))
+        novo_y = max(50, min(novo_y, ALTURA - 50))
+        
+        # Atualizar posição do inimigo
+        nivel.inimigo.rect.center = (novo_x, novo_y)
+
+    def atualizar(self):
+        """Atualiza a lógica do jogo"""
+        # No modo centro aberto ou em erro, não atualizar o mapa
+        if self.estado == "centro_aberto" or self.estado == "erro_lixeira":
+            return
+        
+        # No menu de conclusão de fase, não atualizar
+        if self.estado == "fase_completa":
+            return
+        
+        # Atualizar modo jogando normal
+        if self.estado != "jogando":
+            return
+        
+        keys = pygame.key.get_pressed()
+        lvl = self.niveis[self.atual]
+        self.jogador.mover(keys, self.limites, lvl)
+
+        if lvl.atualizar_inimigo(self.jogador.rect, self.limites):
+            self.estado = "game_over"
+
+        # Verificar se completou a fase
+        if lvl.coletados >= lvl.meta_itens:
+            self.estado = "fase_completa"
+            # Criar menu de conclusão
+            self.menu_fase_completa = MenuFaseCompleta(lvl.numero)
+
+    def desenhar(self):
+        """Renderiza os gráficos do jogo"""
+        self.screen.fill(COR_FUNDO)
+        
+        if self.estado == "jogando":
+            # Desenhar o nivel normal
+            self.desenhar_grade()
+            lvl = self.niveis[self.atual]
+            lvl.desenhar(self.screen)
+            self.jogador.desenhar(self.screen)
+
+            self.desenhar_hud()
+
+            # Dicas quando próximo ao centro
+            hint_y_offset = ALTURA - 80
+            if hasattr(lvl, 'centros'):
+                for c in lvl.centros:
+                    if self.jogador.rect.colliderect(c.rect.inflate(16, 16)):
+                        # Verificar se tem itens na mochila
+                        if len(self.jogador.mochila) > 0:
+                            hint_surface = self.font.render(
+                                "Pressione [F] para entrar no Centro Reciclável",
+                                True,
+                                (0, 0, 0)
+                            )
+                        else:
+                            hint_surface = self.font.render(
+                                "Você precisa de itens na mochila para entrar!",
+                                True,
+                                (255, 100, 100)
+                            )
+                        self.screen.blit(hint_surface, (10, hint_y_offset))
+                        break
+
+        elif self.estado == "centro_aberto":
+            # Desenhar a interface do centro
+            if self.interface_centro:
+                self.interface_centro.desenhar(self.screen)
+        
+        elif self.estado == "erro_lixeira":
+            # Desenhar a interface do centro de fundo + menu de erro
+            if self.interface_centro:
+                self.interface_centro.desenhar(self.screen)
+            
+            if self.menu_erro_lixeira:
+                self.menu_erro_lixeira.desenhar(self.screen)
+        
+        elif self.estado == "fase_completa":
+            # Desenhar o mapa de fundo + menu de conclusão
+            self.desenhar_grade()
+            lvl = self.niveis[self.atual]
+            lvl.desenhar(self.screen)
+            self.jogador.desenhar(self.screen)
+            
+            # Desenhar o menu sobre o mapa
+            if self.menu_fase_completa:
+                self.menu_fase_completa.desenhar(self.screen)
+
+        elif self.estado == "game_over":
+            self._desenhar_texto("Você foi pego! Pressione R para tentar novamente ou ESC para sair.", (140, ALTURA//2))
+        
+        elif self.estado == "vitoria":
+            self._desenhar_texto("Parabéns! Você concluiu a Missão Sustentável! (ESC para sair)", (200, ALTURA//2))
+
+        pygame.display.flip()
+
+    def executar(self):
+        rodando = True
+        while rodando:
+            self.clock.tick(FPS)
+            if not self.processar_eventos():
+                break
+            if self.estado == "jogando":
+                self.atualizar()
+            self.desenhar()
+
+def executar_jogo():
+    Jogo(None).executar()
