@@ -1,4 +1,8 @@
+import random
 import pygame
+from typing import List, Optional, Tuple
+from .enums import TipoLixo
+from .entities import Item, Lixeira, Inimigo, CentroReciclagem
 from .config import LARGURA, ALTURA, TILE
 
 class Nivel:
@@ -106,38 +110,38 @@ class Nivel:
             self.lixeiras.append(l)
             
     def _garantir_inimigo_fora_centros(self):
-            """Garante que o inimigo não esteja dentro de um centro."""
-            for cent in self.centros:
-                if cent.rect.colliderect(self.inimigo.rect):
-                    for pos in [(40, 40), (LARGURA - 80, 40), (40, ALTURA - 80), (LARGURA - 80, ALTURA - 80)]:
-                        self.inimigo.rect.topleft = pos
-                        if not cent.rect.colliderect(self.inimigo.rect):
-                            return
-                    # fallback
-                    self.inimigo.rect.topleft = (cent.rect.left - 40, cent.rect.top - 40)
+        """Garante que o inimigo não esteja dentro de um centro."""
+        for cent in self.centros:
+            if cent.rect.colliderect(self.inimigo.rect):
+                for pos in [(40, 40), (LARGURA - 80, 40), (40, ALTURA - 80), (LARGURA - 80, ALTURA - 80)]:
+                    self.inimigo.rect.topleft = pos
+                    if not cent.rect.colliderect(self.inimigo.rect):
+                        return
+                # fallback
+                self.inimigo.rect.topleft = (cent.rect.left - 40, cent.rect.top - 40)
 
     def _gerar_itens(self):
-            """Gera os itens aleatoriamente fora dos centros e da água."""
-            total_itens = max(1, self.meta_itens)
-            LIXO_TAM = 60
+        """Gera os itens aleatoriamente fora dos centros e da água."""
+        total_itens = max(1, self.meta_itens)
+        LIXO_TAM = 60
 
-            for _ in range(total_itens):
-                t = random.choice(self.tipos_bilhetes)
-                for _try in range(200):
-                    px = random.randrange(40, LARGURA - LIXO_TAM - 40)
-                    py = random.randrange(40, ALTURA - LIXO_TAM - 40)
-                    cell_x, cell_y = px // TILE, py // TILE
-                    if not (0 <= cell_x < self.map_cols and 0 <= cell_y < self.map_rows):
-                        continue
-                    if self.bg_map[cell_y][cell_x] == 2:
-                        continue
-                    item_rect = pygame.Rect(px, py, LIXO_TAM, LIXO_TAM)
-                    if any(cent.rect.colliderect(item_rect) for cent in self.centros):
-                        continue
-                    self.itens.append(Item(item_rect, t))
-                    break
-                else:
-                    print(f"[AVISO] Não foi possível posicionar o item {t}")
+        for _ in range(total_itens):
+            t = random.choice(self.tipos_bilhetes)
+            for _try in range(200):
+                px = random.randrange(40, LARGURA - LIXO_TAM - 40)
+                py = random.randrange(40, ALTURA - LIXO_TAM - 40)
+                cell_x, cell_y = px // TILE, py // TILE
+                if not (0 <= cell_x < self.map_cols and 0 <= cell_y < self.map_rows):
+                    continue
+                if self.bg_map[cell_y][cell_x] == 2:
+                    continue
+                item_rect = pygame.Rect(px, py, LIXO_TAM, LIXO_TAM)
+                if any(cent.rect.colliderect(item_rect) for cent in self.centros):
+                    continue
+                self.itens.append(Item(item_rect, t))
+                break
+            else:
+                print(f"[AVISO] Não foi possível posicionar o item {t}")
 
    
     def encontrar_celula_caminho_proxima(self, col: int, row: int, raio_max: int = 8) -> Optional[Tuple[int, int]]:
@@ -183,3 +187,4 @@ class Nivel:
             it.desenhar(surf)
         if self.inimigo:
             self.inimigo.desenhar(surf)
+
