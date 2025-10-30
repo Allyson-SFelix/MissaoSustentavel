@@ -139,15 +139,47 @@ class Nivel:
                 else:
                     print(f"[AVISO] Não foi possível posicionar o item {t}")
 
+   
     def encontrar_celula_caminho_proxima(self, col: int, row: int, raio_max: int = 8) -> Optional[Tuple[int, int]]:
-            if 0 <= row < self.map_rows and 0 <= col < self.map_cols and self.bg_map[row][col] != 2:
-                return col, row
-            for r in range(1, max_radius + 1):
-                for dy in range(-r, r + 1):
-                    for dx in range(-r, r + 1):
-                        if abs(dx) != r and abs(dy) != r:
-                            continue
-                        ny, nx = row + dy, col + dx
-                        if 0 <= ny < self.map_rows and 0 <= nx < self.map_cols and self.bg_map[ny][nx] != 2:
-                            return nx, ny
-            return None
+        if 0 <= row < self.map_rows and 0 <= col < self.map_cols and self.bg_map[row][col] != 2:
+            return col, row
+        for r in range(1, raio_max + 1):
+            for dy in range(-r, r + 1):
+                for dx in range(-r, r + 1):
+                    if abs(dx) != r and abs(dy) != r:
+                        continue
+                    ny, nx = row + dy, col + dx
+                    if 0 <= ny < self.map_rows and 0 <= nx < self.map_cols and self.bg_map[ny][nx] != 2:
+                        return nx, ny
+        return None
+
+    def eh_agua(self, rect: pygame.Rect) -> bool:
+        left, right = rect.left // TILE, rect.right // TILE
+        top, bottom = rect.top // TILE, rect.bottom // TILE
+        for ry in range(top, bottom + 1):
+            for rx in range(left, right + 1):
+                if self.bg_map[ry][rx] == 2:
+                    return True
+        return False
+
+    def esta_bloqueado(self, rect: pygame.Rect, jogador=None) -> bool:
+        for cent in self.centros:
+            if cent.rect.colliderect(rect):
+                if jogador and getattr(jogador, 'dentro_centro', None) is cent and cent.rect.contains(rect):
+                    return False
+                return True
+        cx, cy = rect.centerx // TILE, rect.centery // TILE
+        if not (0 <= cx < self.map_cols and 0 <= cy < self.map_rows):
+            return True
+        return self.bg_map[cy][cx] == 2
+
+    def desenhar(self, surf: pygame.Surface):
+        surf.blit(self.background_image, (0, 0))
+        for c in self.centros:
+            c.desenhar(surf)
+        for l in self.lixeiras:
+            l.desenhar(surf)
+        for it in self.itens:
+            it.desenhar(surf)
+        if self.inimigo:
+            self.inimigo.desenhar(surf)
