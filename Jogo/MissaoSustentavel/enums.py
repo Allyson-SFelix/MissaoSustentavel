@@ -1,4 +1,5 @@
 from enum import Enum, auto
+import os
 import pygame
 
 class TipoLixo(Enum):
@@ -10,14 +11,19 @@ class TipoLixo(Enum):
     METAL = auto()
     PERIGOSO = auto()
 
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IMG = os.path.join(BASE_DIR, "../../Jogo/assets",)
+
 TIPO_IMAGENS = {
-    TipoLixo.GENERICO: pygame.image.load("assets/generico.png"),
-    TipoLixo.ORGANICO: pygame.image.load("assets/organico.png"),
-    TipoLixo.PLASTICO: pygame.image.load("assets/plastico.png"),
-    TipoLixo.PAPEL: pygame.image.load("assets/papel.png"),
-    TipoLixo.VIDRO: pygame.image.load("assets/vidro.png"),
-    TipoLixo.METAL: pygame.image.load("assets/metal.png"),
-    TipoLixo.PERIGOSO: pygame.image.load("assets/perigoso.png"),
+    TipoLixo.GENERICO: pygame.image.load(os.path.join(IMG,"generico.png")),
+    TipoLixo.ORGANICO: pygame.image.load(os.path.join(IMG,"organico.png")),
+    TipoLixo.PLASTICO: pygame.image.load(os.path.join(IMG,"plastico.png")),
+    TipoLixo.PAPEL: pygame.image.load(os.path.join(IMG,"papel.png")),
+    TipoLixo.VIDRO: pygame.image.load(os.path.join(IMG,"vidro.png")),
+    TipoLixo.METAL: pygame.image.load(os.path.join(IMG,"metal.png")),
+    TipoLixo.PERIGOSO: pygame.image.load(os.path.join(IMG,"perigoso.png")),
 }
 
 TIPO_NOMES = {

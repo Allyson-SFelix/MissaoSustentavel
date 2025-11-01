@@ -1,16 +1,21 @@
 import random
 import pygame
+import os
 from typing import List, Optional, Tuple
 from .enums import TipoLixo
 from .entities import Item, Lixeira, Inimigo, CentroReciclagem
 from .config import LARGURA, ALTURA, TILE
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IMG = os.path.join(BASE_DIR, "../../Jogo/assets",)
 
 class Nivel:
     """Gerencia o cenário, inimigo, lixeiras e lixo do jogo."""
 
     def __init__(self, numero: int, tipos_bilhetes: List[TipoLixo], meta_itens: int, inimigo: bool = False):
         self.background_image = pygame.transform.scale(
-            pygame.image.load("assets/cenario.png").convert(),
+            pygame.image.load(os.path.join(IMG,"cenario.png")).convert(),
             (LARGURA, ALTURA)
         )
         self.numero = numero

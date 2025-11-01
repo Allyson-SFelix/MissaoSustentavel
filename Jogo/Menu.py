@@ -1,7 +1,13 @@
 import pygame_menu
 import pygame
 import sys
+import os
 from MissaoSustentavel.game import Jogo
+
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IMG = os.path.join(BASE_DIR, "../Jogo/assets",)
 
 class MenuPrincipal:
     def __init__(self, tela, usuario):
@@ -15,7 +21,7 @@ class MenuPrincipal:
             theme=pygame_menu.themes.THEME_DARK
         )
 
-        imagem_original = pygame.image.load("assets/logo.png").convert_alpha()
+        imagem_original = pygame.image.load(os.path.join(IMG,"logo.png")).convert_alpha()
         logo_redimensionado = pygame.transform.scale(imagem_original, (652 , 276))
         self.menu.add.surface(
             logo_redimensionado,
@@ -36,6 +42,6 @@ class MenuPrincipal:
     
     def run(self):
         self.menu.add.button('Iniciar Jogo', self.start_game)
-        self.menu.add.button('Carregar Jogo', self.carregar_game)
+        #self.menu.add.button('Carregar Jogo', self.carregar_game)
         self.menu.add.button('Sair Jogo', self.fechar_jogo) 
         self.menu.mainloop(self.tela)

@@ -2,9 +2,11 @@ import pygame
 from typing import List
 from .config import LARGURA, ALTURA, FPS, COR_FUNDO, COR_GRADE, NOME_FONTE, TILE
 from .enums import TipoLixo
-#from .entities import Jogador
-#from .level import Nivel
-
+from .entities import Jogador
+from .level import Nivel
+from .centro_interface import CentroInterfaceUI
+from .menu_fase_completa import MenuFaseCompleta
+from .menu_erro_lixeira import MenuErroLixeira
 class Jogo:
     def __init__(self,usuario):
         pygame.init()
