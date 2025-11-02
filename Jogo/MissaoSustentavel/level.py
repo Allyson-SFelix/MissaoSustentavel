@@ -79,7 +79,7 @@ class Nivel:
 
     def _criar_centro_reciclagem(self):
         """Cria um centro de reciclagem com lixeiras."""
-        center_w, center_h = 220, 120
+        center_w, center_h = 220, 170
         pref_col = max(1, self.map_cols - 3)
         pref_row = max(1, self.map_rows - 5)
         found = self.encontrar_celula_caminho_proxima(pref_col, pref_row)
@@ -92,8 +92,8 @@ class Nivel:
             cx = LARGURA - center_w - 24
             cy = ALTURA - center_h - 24 - TILE * 2
 
-        cx = max(8, min(cx, LARGURA - center_w - 8))
-        cy = max(8, min(cy, ALTURA - center_h - 8))
+        cx, cy = 737, 220
+
 
         lixeiras_internas = []
         bw, bh = 40, 48
