@@ -46,8 +46,27 @@ class MenuInstrucoes:
         # Linha separadora
         pygame.draw.line(surf, (100, 200, 100), (100, 120), (LARGURA - 100, 120), 3)
 
+        # Objetivo do jogo
+        y_offset = 140
+        objetivo_titulo = self.font_grande.render("OBJETIVO:", True, (255, 100, 100))
+        surf.blit(objetivo_titulo, (100, y_offset))
+        y_offset += 50
+
+        objetivo_texto = "Colete lixo espalhado pelo mapa e leve-o"
+        objetivo_surf = self.font_media.render(objetivo_texto, True, (200, 200, 255))
+        surf.blit(objetivo_surf, (110, y_offset))
+        y_offset += 35
+
+        objetivo_texto2 = "ao Centro de Reciclagem para classificá-lo na lixeira certa!"
+        objetivo_surf2 = self.font_media.render(objetivo_texto2, True, (200, 200, 255))
+        surf.blit(objetivo_surf2, (110, y_offset))
+        y_offset += 40
+
+        # Segunda linha separadora
+        pygame.draw.line(surf, (100, 200, 100), (100, y_offset + 10), (LARGURA - 100, y_offset + 10), 3)
+
         # Instruções de movimentação
-        y_offset = 180
+        y_offset += 30
 
         # Título das instruções
         instr_titulo = self.font_grande.render("MOVIMENTAÇÃO:", True, (100, 220, 100))
@@ -62,24 +81,59 @@ class MenuInstrucoes:
             ("A", "Mover para ESQUERDA"),
         ]
 
+        # Salvar y_offset inicial para MOVIMENTAÇÃO
+        y_mov_inicio = y_offset
+        y_mov = y_mov_inicio
         for tecla, descricao in instrucoes:
             tecla_surf = self.font_media.render(tecla, True, (0, 0, 0))
-            tecla_rect = tecla_surf.get_rect(topleft=(120, y_offset + 5))
+            tecla_rect = tecla_surf.get_rect(topleft=(120, y_mov + 5))
             
-            tecla_bg = pygame.Rect(110, y_offset, 40, 40)
+            tecla_bg = pygame.Rect(110, y_mov, 40, 40)
             pygame.draw.rect(surf, (100, 220, 100), tecla_bg, border_radius=5)
             pygame.draw.rect(surf, (255, 255, 255), tecla_bg, 2, border_radius=5)
             surf.blit(tecla_surf, tecla_rect)
 
             desc_surf = self.font_pequena.render(descricao, True, (200, 255, 200))
-            surf.blit(desc_surf, (170, y_offset + 8))
+            surf.blit(desc_surf, (170, y_mov + 8))
 
-            y_offset += 50
+            y_mov += 50
+
+        # Outros controles ao lado (começar na mesma altura da MOVIMENTAÇÃO)
+        outros_titulo = self.font_grande.render("OUTROS CONTROLES:", True, (100, 200, 255))
+        surf.blit(outros_titulo, (LARGURA // 2 + 50, y_mov_inicio - 60))
+
+        # Outros controles
+        outros_controles = [
+            ("ESPAÇO", "Pegar item", 90),  # Botão maior para ESPAÇO
+            ("F", "Entrar no Centro", 40),
+            ("R", "Reiniciar fase", 40),
+            ("ESC", "Ir para o menu", 40),
+        ]
+
+        y_outros = y_mov_inicio
+        for tecla, descricao, btn_width in outros_controles:
+            tecla_surf = self.font_media.render(tecla, True, (0, 0, 0))
+            tecla_x = LARGURA // 2 + 60 + (btn_width - tecla_surf.get_width()) // 2
+            tecla_rect = tecla_surf.get_rect(topleft=(tecla_x, y_outros + (40 - tecla_surf.get_height()) // 2))
+            
+            tecla_bg = pygame.Rect(LARGURA // 2 + 60, y_outros, btn_width, 40)
+            pygame.draw.rect(surf, (100, 200, 255), tecla_bg, border_radius=5)
+            pygame.draw.rect(surf, (255, 255, 255), tecla_bg, 2, border_radius=5)
+            surf.blit(tecla_surf, tecla_rect)
+
+            desc_x = LARGURA // 2 + 60 + btn_width + 15
+            desc_surf = self.font_pequena.render(descricao, True, (200, 220, 255))
+            surf.blit(desc_surf, (desc_x, y_outros + 8))
+
+            y_outros += 50
+
+        # Calcular o y_offset final (usar o maior dos dois)
+        y_offset = max(y_mov, y_outros)
+
+        # (Linha separadora removida daqui)
 
         # Contexto e ODS
-        pygame.draw.line(surf, (100, 200, 100), (100, y_offset + 20), (LARGURA - 100, y_offset + 20), 3)
         y_offset += 60
-
         contexto = self.contextos.get(self.numero_fase, "Ajude a salvar o planeta!")
         linhas = contexto.split("\n")
         
