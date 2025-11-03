@@ -1,21 +1,16 @@
 import random
 import pygame
-import os
 from typing import List, Optional, Tuple
 from .enums import TipoLixo
 from .entities import Item, Lixeira, Inimigo, CentroReciclagem
 from .config import LARGURA, ALTURA, TILE
-
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-IMG = os.path.join(BASE_DIR, "../../Jogo/assets",)
 
 class Nivel:
     """Gerencia o cenário, inimigo, lixeiras e lixo do jogo."""
 
     def __init__(self, numero: int, tipos_bilhetes: List[TipoLixo], meta_itens: int, inimigo: bool = False):
         self.background_image = pygame.transform.scale(
-            pygame.image.load(os.path.join(IMG,"cenario.png")).convert(),
+            pygame.image.load("assets/cenario.png").convert(),
             (LARGURA, ALTURA)
         )
         self.numero = numero
@@ -79,7 +74,7 @@ class Nivel:
 
     def _criar_centro_reciclagem(self):
         """Cria um centro de reciclagem com lixeiras."""
-        center_w, center_h = 220, 170
+        center_w, center_h = 215, 170
         pref_col = max(1, self.map_cols - 3)
         pref_row = max(1, self.map_rows - 5)
         found = self.encontrar_celula_caminho_proxima(pref_col, pref_row)
@@ -92,7 +87,7 @@ class Nivel:
             cx = LARGURA - center_w - 24
             cy = ALTURA - center_h - 24 - TILE * 2
 
-        cx, cy = 737, 220
+        cx, cy = 740, 220
 
 
         lixeiras_internas = []
@@ -113,7 +108,7 @@ class Nivel:
         for l in lixeiras_internas:
             setattr(l, "centro_pai", centro)
             self.lixeiras.append(l)
-            
+
     def _garantir_inimigo_fora_centros(self):
         """Garante que o inimigo não esteja dentro de um centro."""
         for cent in self.centros:
@@ -126,12 +121,23 @@ class Nivel:
                 self.inimigo.rect.topleft = (cent.rect.left - 40, cent.rect.top - 40)
 
     def _gerar_itens(self):
-        """Gera os itens aleatoriamente fora dos centros e da água."""
-        total_itens = max(1, self.meta_itens)
+        """Gera os itens com distribuição uniforme por tipo de lixo."""
         LIXO_TAM = 60
-
-        for _ in range(total_itens):
-            t = random.choice(self.tipos_bilhetes)
+        
+        # Calcular quantos itens de cada tipo
+        num_tipos = len(self.tipos_bilhetes)
+        itens_por_tipo = self.meta_itens // num_tipos
+        
+        # Criar lista de tipos com distribuição uniforme
+        tipos_distribuidos = []
+        for tipo in self.tipos_bilhetes:
+            tipos_distribuidos.extend([tipo] * itens_por_tipo)
+        
+        # Embaralhar para não seguir ordem fixa
+        random.shuffle(tipos_distribuidos)
+        
+        # Gerar os itens
+        for t in tipos_distribuidos:
             for _try in range(200):
                 px = random.randrange(40, LARGURA - LIXO_TAM - 40)
                 py = random.randrange(40, ALTURA - LIXO_TAM - 40)
@@ -148,7 +154,6 @@ class Nivel:
             else:
                 print(f"[AVISO] Não foi possível posicionar o item {t}")
 
-   
     def encontrar_celula_caminho_proxima(self, col: int, row: int, raio_max: int = 8) -> Optional[Tuple[int, int]]:
         if 0 <= row < self.map_rows and 0 <= col < self.map_cols and self.bg_map[row][col] != 2:
             return col, row
@@ -192,4 +197,3 @@ class Nivel:
             it.desenhar(surf)
         if self.inimigo:
             self.inimigo.desenhar(surf)
-
