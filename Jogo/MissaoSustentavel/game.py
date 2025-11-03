@@ -1,32 +1,58 @@
 import pygame
 from typing import List
-from .config import LARGURA, ALTURA, FPS, COR_FUNDO, COR_GRADE, NOME_FONTE, TILE
+from .config import FPS, LARGURA, ALTURA, CAMINHO_FONTE, COR_FUNDO, TILE, COR_GRADE, NOME_FONTE, TAMANHO_FONTE_PADRAO, TAMANHO_FONTE_TITULO, TAMANHO_FONTE_PEQUENA
 from .enums import TipoLixo
 from .entities import Jogador
 from .level import Nivel
 from .centro_interface import CentroInterfaceUI
 from .menu_fase_completa import MenuFaseCompleta
 from .menu_erro_lixeira import MenuErroLixeira
+from .menu_instrucoes import MenuInstrucoes
+from .popup_saco_cheio import PopupSacoCheio
+
 class Jogo:
-    def __init__(self,usuario):
+    def __init__(self, usuario, fase_inicial=0):
         pygame.init()
         self.screen = pygame.display.set_mode((LARGURA, ALTURA))
         pygame.display.set_caption("Missão Sustentável")
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont(NOME_FONTE, 18)
+        self.font = pygame.font.Font(CAMINHO_FONTE, TAMANHO_FONTE_PADRAO)
 
-        self.limites = pygame.Rect(0,0,LARGURA,ALTURA)
-        self.jogador = Jogador(pygame.Rect(60,60,28,28))
+        self.limites = pygame.Rect(0, 0, LARGURA, ALTURA)
+        self.jogador = Jogador(pygame.Rect(60, 60, 28, 28))
 
         self.niveis: List[Nivel] = [
+            # Fase 1: 1 lixeira geral, meta de 5 itens
             Nivel(1, [TipoLixo.GENERICO], meta_itens=5, inimigo=False),
+            # Fase 2: 2 lixeiras (orgânicos e plásticos), meta de 4 itens de cada
             Nivel(2, [TipoLixo.ORGANICO, TipoLixo.PLASTICO], meta_itens=8, inimigo=False),
-            Nivel(3, [TipoLixo.PAPEL, TipoLixo.VIDRO, TipoLixo.METAL], meta_itens=10, inimigo=False),
-            Nivel(4, [TipoLixo.ORGANICO, TipoLixo.PLASTICO, TipoLixo.PAPEL, TipoLixo.VIDRO], meta_itens=12, inimigo=True),
+            # Fase 3: 4 lixeiras (plástico, vidro, orgânico, papel), meta de 3 itens de cada
+            Nivel(3, [TipoLixo.PLASTICO, TipoLixo.VIDRO, TipoLixo.ORGANICO, TipoLixo.PAPEL], meta_itens=12, inimigo=False),
+            # Fase 4: 6 lixeiras (plástico, vidro, orgânico, papel, metal, perigoso), meta de 2 itens de cada, com monstro
+            Nivel(4, [TipoLixo.PLASTICO, TipoLixo.VIDRO, TipoLixo.ORGANICO, TipoLixo.PAPEL, TipoLixo.METAL, TipoLixo.PERIGOSO], meta_itens=12, inimigo=True),
         ]
-        self.usuario=usuario
-        self.atual = 0
+        self.usuario = usuario
+        self.atual = max(0, min(fase_inicial, len(self.niveis) - 1))  # Garante que seja válido
         self.estado = "jogando"
+        
+        # Interface do centro de reciclagem
+        self.interface_centro = None
+        
+        # Menu de conclusão de fase
+        self.menu_fase_completa = None
+        
+        # Menu de erro de lixeira
+        self.menu_erro_lixeira = None
+        
+        # Menu de instruções
+        self.menu_instrucoes = None
+        
+        # Popup de saco cheio
+        self.popup_saco_cheio = None
+        
+        # Mostrar ícone do centro
+        self.mostrar_icone_centro = False
+        
         self._carregar_nivel()
 
     def _carregar_nivel(self):
@@ -79,20 +105,29 @@ class Jogo:
                     self.jogador.rect.topleft = (60, 60)
         else:
             self.jogador.rect.topleft = (60, 60)
-        self.jogador.mochila.clear()
-        self.estado = "jogando"
+        self.jogador.saco_lixo.clear()
+        
+        # Resetar variáveis de popup
+        self.popup_saco_cheio = None
+        self.mostrar_icone_centro = False
+        
+        # Criar menu de instruções apenas para a primeira fase
+        if lvl.numero == 1:
+            self.menu_instrucoes = MenuInstrucoes(lvl.numero)
+            self.estado = "instrucoes"
+        else:
+            self.estado = "jogando"
 
     def desenhar_grade(self):
         for x in range(0, self.screen.get_width(), 40):
             pygame.draw.line(self.screen, COR_GRADE, (x,0), (x,self.screen.get_height()))
-            
         for y in range(0, self.screen.get_height(), 40):
             pygame.draw.line(self.screen, COR_GRADE, (0,y), (self.screen.get_width(),y))
 
     def desenhar_hud(self):
         lvl = self.niveis[self.atual]
-        text1 = f"Fase {lvl.numero} | Meta: {lvl.meta_itens} | Coletados: {lvl.coletados} | Mochila: {len(self.jogador.mochila)}/{self.jogador.capacidade}"
-        text2 = "Controles: [E] Pegar  [Q] Descartar  [R] Reiniciar  [Esc] Sair"
+        text1 = f"Fase {lvl.numero} | Meta: {lvl.meta_itens} | Coletados: {lvl.coletados} | Saco de Lixo: {len(self.jogador.saco_lixo)}/{self.jogador.capacidade}"
+        text2 = "Controles: [Espaço] Pegar  [R] Reiniciar  [Esc] Menu"
 
         text1_surface = self.font.render(text1, True, (0, 0, 0))
         text2_surface = self.font.render(text2, True, (0, 0, 0))
@@ -113,23 +148,37 @@ class Jogo:
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 return False
-            
+
+            # Eventos do popup de saco cheio
+            if self.popup_saco_cheio:
+                # O popup agora ignora qualquer entrada (não fecha com tecla)
+                if self.popup_saco_cheio.tempo_expirou():
+                    self.popup_saco_cheio = None
+
+            # Eventos do menu de instruções
+            if self.estado == "instrucoes" and self.menu_instrucoes:
+                if e.type == pygame.KEYDOWN or e.type == pygame.MOUSEBUTTONDOWN:
+                    if self.menu_instrucoes.pode_pular():
+                        self.menu_instrucoes = None
+                        self.estado = "jogando"
+
+            # Eventos do menu de fase completa
+            if self.estado == "fase_completa" and self.menu_fase_completa:
+                if e.type == pygame.KEYDOWN:
+                    acao = self.menu_fase_completa.processar_entrada_teclado(e.key)
+                    if acao == "proxima":
+                        self._avancar_fase()
+                    elif acao == "menu_principal":
+                        # Volta ao menu principal (NÃO fecha o jogo)
+                        self.estado = "menu_principal"
+                        self.menu_fase_completa = None
+                    # Importante: NÃO dar return False aqui!
+
             # Eventos do menu de erro de lixeira
             if self.estado == "erro_lixeira" and self.menu_erro_lixeira:
                 if e.type == pygame.MOUSEBUTTONDOWN:
                     self._confirmar_erro_lixeira()
-            
-            # Eventos do menu de conclusão de fase
-            if self.estado == "fase_completa" and self.menu_fase_completa:
-                if e.type == pygame.MOUSEMOTION:
-                    self.menu_fase_completa.atualizar_mouse_hover(e.pos)
-                elif e.type == pygame.MOUSEBUTTONDOWN:
-                    resultado = self.menu_fase_completa.processar_clique_mouse(e.pos)
-                    if resultado == "continuar":
-                        self._avancar_fase()
-                    elif resultado == "sair":
-                        return False
-            
+
             # Eventos do mouse para o centro de reciclagem
             if self.estado == "centro_aberto" and self.interface_centro:
                 if e.type == pygame.MOUSEBUTTONDOWN:
@@ -141,77 +190,64 @@ class Jogo:
                     foi_depositado, indice, houve_erro, tipo_lixo, tipo_lixeira_correta = resultado
                     
                     if houve_erro:
-                        # Erro! Mostrar menu de erro
                         self.estado = "erro_lixeira"
                         self.menu_erro_lixeira = MenuErroLixeira(tipo_lixo, tipo_lixeira_correta)
                     elif foi_depositado:
-                        # Sucesso! Remove o item da mochila do jogador
-                        if 0 <= indice < len(self.jogador.mochila):
-                            del self.jogador.mochila[indice]
-                        # Atualiza interface
-                        self.interface_centro.atualizar_inventario(self.jogador.mochila)
-            
+                        if 0 <= indice < len(self.jogador.saco_lixo):
+                            del self.jogador.saco_lixo[indice]
+                        self.interface_centro.atualizar_inventario(self.jogador.saco_lixo)
+
             if e.type == pygame.KEYDOWN:
-                # Menu de erro de lixeira
+                # Erro de lixeira
                 if self.estado == "erro_lixeira" and self.menu_erro_lixeira:
                     if self.menu_erro_lixeira.processar_entrada(e.key):
                         self._confirmar_erro_lixeira()
                     continue
-                
-                # Menu de conclusão de fase
-                if self.estado == "fase_completa" and self.menu_fase_completa:
-                    resultado = self.menu_fase_completa.processar_entrada_teclado(e.key)
-                    if resultado == "continuar":
-                        self._avancar_fase()
-                    elif resultado == "sair":
-                        return False
-                    continue
-                
-                # Sair do jogo ou do centro
+
                 if e.key == pygame.K_ESCAPE:
-                    if self.estado == "centro_aberto":
-                        # Sair do centro
+
+                    # Se estiver no menu principal, apenas ignore o ESC (não fecha o jogo)
+                    if self.estado == "menu_principal":
+                        continue
+
+                    return False
+
+
+                # Entrar ou sair do centro com F
+                if e.key == pygame.K_f:
+                    if self.estado == "jogando":
+                        self._tentar_entrar_centro()
+                    elif self.estado == "centro_aberto":
                         self._sair_centro()
-                    else:
-                        return False
-                
-                # Entrar no centro (somente modo jogando)
-                if e.key == pygame.K_f and self.estado == "jogando":
-                    self._tentar_entrar_centro()
-                
+
+
                 # Reiniciar fase
                 if e.key == pygame.K_r:
                     if self.atual >= len(self.niveis):
                         self.atual = 0
                     self._carregar_nivel()
                     continue
-                
-                # Controles de coleta (somente quando jogando)
+
+                # Coletar item
                 if self.estado == "jogando" and self.atual < len(self.niveis):
-                    if e.key == pygame.K_e:
-                        # Coletar item
+                    if e.key == pygame.K_SPACE:
                         lvl = self.niveis[self.atual]
                         item_coletado = self.jogador.tentar_coletar(lvl.itens)
                         if item_coletado:
                             lvl.itens.remove(item_coletado)
-                    
-                    if e.key == pygame.K_q:
-                        # Descartar na lixeira (modo antigo, mantido para compatibilidade)
-                        lvl = self.niveis[self.atual]
-                        depositado = self.jogador.tentar_depositar(lvl.lixeiras)
-                        if depositado:
-                            lvl.coletados += depositado
-                
-                # Confirmar saída do centro com ENTER
+
+                # Confirmar saída do centro
                 if e.key == pygame.K_RETURN and self.estado == "centro_aberto":
                     self._sair_centro()
-        
+
+
         return True
+
     
     def _tentar_entrar_centro(self):
         """Tenta entrar no centro de reciclagem"""
-        # Validar se tem itens na mochila
-        if len(self.jogador.mochila) == 0:
+        # Validar se tem itens no saco de lixo
+        if len(self.jogador.saco_lixo) == 0:
             # Não tem itens, não pode entrar
             return
         
@@ -242,7 +278,7 @@ class Jogo:
         # Cria a interface do centro
         tipos_lixeiras = centro_encontrado.lixeiras
         self.interface_centro = CentroInterfaceUI([l.tipo for l in tipos_lixeiras])
-        self.interface_centro.atualizar_inventario(self.jogador.mochila)
+        self.interface_centro.atualizar_inventario(self.jogador.saco_lixo)
     
     def _sair_centro(self):
         """Sai do centro de reciclagem e volta ao mapa"""
@@ -256,15 +292,30 @@ class Jogo:
         if total_depositado > 0:
             lvl.coletados += total_depositado
         
+        # Verificar imediatamente se completou a fase ANTES de mudar estado
+        if lvl.coletados >= lvl.meta_itens:
+            # Se for a última fase, vai direto para vitória
+            if self.atual == len(self.niveis) - 1:
+                self.estado = "vitoria"
+            else:
+                self.estado = "fase_completa"
+                self.menu_fase_completa = MenuFaseCompleta(lvl.numero)
+        else:
+            # Só volta ao estado "jogando" se NÃO completou a fase
+            self.estado = "jogando"
+        
         # Retorna o jogador à posição anterior
         if self.jogador.posicao_antes_centro:
             self.jogador.rect = self.jogador.posicao_antes_centro.copy()
         
-        # Limpa o estado
-        self.estado = "jogando"
+        # Limpa a interface
         self.jogador.dentro_centro = None
         self.interface_centro.limpar()
         self.interface_centro = None
+        
+        # Afastar o inimigo novamente ao sair do centro (Fase 4)
+        if lvl.inimigo and lvl.centros:
+            self._afastar_inimigo_do_centro(lvl.centros[0], lvl)
     
     def _avancar_fase(self):
         """Avança para a próxima fase"""
@@ -279,7 +330,7 @@ class Jogo:
         else:
             # Carregar próxima fase
             self._carregar_nivel()
-
+    
     def _confirmar_erro_lixeira(self):
         """Confirma o erro e reinicia a fase"""
         # Fechar menu de erro
@@ -300,8 +351,8 @@ class Jogo:
         
         import math
         
-        # Definir distância mínima desejada
-        distancia_minima = 300
+        # Definir distância mínima desejada (aumentada)
+        distancia_minima = 500
         
         # Calcular direção oposta do centro
         dx = nivel.inimigo.rect.centerx - centro.rect.centerx
@@ -334,18 +385,23 @@ class Jogo:
 
     def atualizar(self):
         """Atualiza a lógica do jogo"""
-        # No modo centro aberto ou em erro, não atualizar o mapa
-        if self.estado == "centro_aberto" or self.estado == "erro_lixeira":
+        # Se está exibindo instruções
+        if self.estado == "instrucoes":
+            if self.menu_instrucoes and self.menu_instrucoes.tempo_expirou():
+                self.menu_instrucoes = None
+                self.estado = "jogando"
             return
         
-        # No menu de conclusão de fase, não atualizar
-        if self.estado == "fase_completa":
-            return
+        # Fechar popup de saco cheio se expirou
+        if self.popup_saco_cheio and self.popup_saco_cheio.tempo_expirou():
+            self.popup_saco_cheio = None
         
-        # Atualizar modo jogando normal
+        if self.estado == "centro_aberto" or self.estado == "erro_lixeira" or self.estado == "fase_completa":
+            return
+
         if self.estado != "jogando":
             return
-        
+
         keys = pygame.key.get_pressed()
         lvl = self.niveis[self.atual]
         self.jogador.mover(keys, self.limites, lvl)
@@ -353,17 +409,32 @@ class Jogo:
         if lvl.atualizar_inimigo(self.jogador.rect, self.limites):
             self.estado = "game_over"
 
+        # Verificar se o saco de lixo ficou cheio
+        if len(self.jogador.saco_lixo) >= self.jogador.capacidade and not self.popup_saco_cheio:
+            self.popup_saco_cheio = PopupSacoCheio()
+            self.mostrar_icone_centro = True
+
         # Verificar se completou a fase
         if lvl.coletados >= lvl.meta_itens:
             self.estado = "fase_completa"
-            # Criar menu de conclusão
             self.menu_fase_completa = MenuFaseCompleta(lvl.numero)
 
     def desenhar(self):
         """Renderiza os gráficos do jogo"""
         self.screen.fill(COR_FUNDO)
         
-        if self.estado == "jogando":
+        if self.estado == "instrucoes":
+            # Desenhar o mapa de fundo + menu de instruções
+            self.desenhar_grade()
+            lvl = self.niveis[self.atual]
+            lvl.desenhar(self.screen)
+            self.jogador.desenhar(self.screen)
+            
+            # Desenhar o menu de instruções sobre o mapa
+            if self.menu_instrucoes:
+                self.menu_instrucoes.desenhar(self.screen)
+        
+        elif self.estado == "jogando":
             # Desenhar o nivel normal
             self.desenhar_grade()
             lvl = self.niveis[self.atual]
@@ -371,14 +442,18 @@ class Jogo:
             self.jogador.desenhar(self.screen)
 
             self.desenhar_hud()
+            
+            # Desenhar ícone do centro se saco estiver cheio
+            if self.mostrar_icone_centro and hasattr(lvl, 'centros') and lvl.centros:
+                self._desenhar_icone_centro(lvl.centros[0])
 
             # Dicas quando próximo ao centro
             hint_y_offset = ALTURA - 80
             if hasattr(lvl, 'centros'):
                 for c in lvl.centros:
                     if self.jogador.rect.colliderect(c.rect.inflate(16, 16)):
-                        # Verificar se tem itens na mochila
-                        if len(self.jogador.mochila) > 0:
+                        # Verificar se tem itens no saco de lixo
+                        if len(self.jogador.saco_lixo) > 0:
                             hint_surface = self.font.render(
                                 "Pressione [F] para entrar no Centro Reciclável",
                                 True,
@@ -386,7 +461,7 @@ class Jogo:
                             )
                         else:
                             hint_surface = self.font.render(
-                                "Você precisa de itens na mochila para entrar!",
+                                "Você precisa de itens no saco de lixo para entrar!",
                                 True,
                                 (255, 100, 100)
                             )
@@ -418,12 +493,48 @@ class Jogo:
                 self.menu_fase_completa.desenhar(self.screen)
 
         elif self.estado == "game_over":
-            self._desenhar_texto("Você foi pego! Pressione R para tentar novamente ou ESC para sair.", (140, ALTURA//2))
+            self._desenhar_texto("Você foi pego! Pressione R para tentar novamente ou ESC para ir pro menu.", (150, ALTURA//2))
         
         elif self.estado == "vitoria":
-            self._desenhar_texto("Parabéns! Você concluiu a Missão Sustentável! (ESC para sair)", (200, ALTURA//2))
+            mensagem = f"Parabéns, {self.usuario.username}! Você salvou o planeta e concluiu a Missão Sustentável!"
+            self._desenhar_texto(mensagem, (150, ALTURA // 2))
 
+            texto_voltar = "Aperte [ESC] para voltar para o menu"
+            self._desenhar_texto(texto_voltar, (150, ALTURA // 2 + 60))
+        
+        # Desenhar popup de saco cheio se houver
+        if self.popup_saco_cheio:
+            self.popup_saco_cheio.desenhar(self.screen)
+        
         pygame.display.flip()
+    
+    def _desenhar_icone_centro(self, centro):
+        """Desenha um ícone visual do centro de reciclagem no mapa"""
+        # Animação pulsante do ícone
+        tempo = pygame.time.get_ticks() / 500  # Pulsa a cada 500ms
+        escala = 1.0 + 0.2 * abs(((tempo % 2) - 1))  # Varia entre 0.8 e 1.2
+        
+        # Calcular posição do ícone no topo do centro
+        icon_x = centro.rect.centerx
+        icon_y = centro.rect.top - 40
+        
+        # Desenhar círculo pulsante
+        raio = int(15 * escala)
+        pygame.draw.circle(self.screen, (100, 255, 100), (icon_x, icon_y), raio, 3)
+        
+        # Desenhar símbolo de reciclagem (triângulo)
+        pontos = [
+            (icon_x, icon_y - 8),
+            (icon_x + 8, icon_y + 8),
+            (icon_x - 8, icon_y + 8)
+        ]
+        pygame.draw.polygon(self.screen, (100, 255, 100), pontos, 2)
+        
+        # Desenhar texto "CENTRO"
+        font_pequena = pygame.font.SysFont(NOME_FONTE, 16, bold=True)
+        texto = font_pequena.render("CENTRO", True, (100, 255, 100))
+        texto_rect = texto.get_rect(center=(icon_x, icon_y + 25))
+        self.screen.blit(texto, texto_rect)
 
     def executar(self):
         rodando = True
@@ -431,8 +542,10 @@ class Jogo:
             self.clock.tick(FPS)
             if not self.processar_eventos():
                 break
-            if self.estado == "jogando":
-                self.atualizar()
+
+            # Atualiza sempre, pois o método já trata o estado internamente
+            self.atualizar()
+
             self.desenhar()
 
 def executar_jogo():
