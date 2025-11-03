@@ -2,8 +2,10 @@ import random
 import pygame
 from typing import List, Optional, Tuple
 from .enums import TipoLixo, TIPO_NOMES, TIPO_IMAGENS, CORES_LIXEIRA
-from .config import LARGURA, ALTURA, NOME_FONTE, COR_FUNDO, TILE
-
+from .config import (
+    FPS, LARGURA, ALTURA, CAMINHO_FONTE, COR_FUNDO, TILE, COR_GRADE,
+    TAMANHO_FONTE_PADRAO, TAMANHO_FONTE_TITULO, TAMANHO_FONTE_PEQUENA
+)
 
 class ItemDragavel:
     """Representa um item no inventário que pode ser arrastado"""
@@ -26,10 +28,24 @@ class ItemDragavel:
         return False
     
     def atualizar_posicao(self, mouse_pos: Tuple[int, int]):
-        """Atualiza a posição durante o arrasto"""
+        """Atualiza a posição durante o arrasto, mantendo o item dentro da tela"""
         if self.sendo_arrastado:
-            self.rect.x = mouse_pos[0] - self.offset_x
-            self.rect.y = mouse_pos[1] - self.offset_y
+            nova_x = mouse_pos[0] - self.offset_x
+            nova_y = mouse_pos[1] - self.offset_y
+
+            # Impedir que o item saia da tela
+            if nova_x < 0:
+                nova_x = 0
+            elif nova_x + self.rect.w > LARGURA:
+                nova_x = LARGURA - self.rect.w
+
+            if nova_y < 0:
+                nova_y = 0
+            elif nova_y + self.rect.h > ALTURA:
+                nova_y = ALTURA - self.rect.h
+
+            self.rect.x = nova_x
+            self.rect.y = nova_y
     
     def parar_arrasto(self):
         """Para o arrasto do item"""
@@ -41,7 +57,7 @@ class ItemDragavel:
             imagem = TIPO_IMAGENS[self.tipo]
             imagem_redimensionada = pygame.transform.scale(imagem, (self.rect.w, self.rect.h))
             superficie.blit(imagem_redimensionada, self.rect)
-        except:
+        except Exception:
             # Fallback se a imagem não carregar
             pygame.draw.rect(superficie, (200, 200, 200), self.rect, border_radius=5)
         
@@ -62,21 +78,17 @@ class LixeiraUI:
         self.cor = CORES_LIXEIRA.get(tipo, (100, 100, 100))
     
     def verificar_colisao(self, item_rect: pygame.Rect) -> bool:
-        """Verifica se um item está sobre a lixeira"""
         return self.rect.colliderect(item_rect)
     
     def aceitar_item(self, tipo_item: TipoLixo) -> bool:
-        """Verifica se pode aceitar um item"""
-        # Lixeira genérica aceita tudo, senão deve ser do mesmo tipo
         return self.tipo == TipoLixo.GENERICO or self.tipo == tipo_item
     
     def depositar_item(self) -> bool:
-        """Deposita um item na lixeira"""
         self.itens_depositados += 1
         return True
     
     def desenhar(self, superficie: pygame.Surface):
-        """Desenha a lixeira"""
+        """Desenha a lixeira individual"""
         # Corpo da lixeira
         pygame.draw.rect(superficie, self.cor, self.rect, border_radius=8)
         
@@ -84,16 +96,16 @@ class LixeiraUI:
         interior = self.rect.inflate(-10, -10)
         pygame.draw.rect(superficie, (240, 240, 240), interior, border_radius=6)
         
-        # Label (tipo da lixeira)
-        fonte = pygame.font.SysFont(NOME_FONTE, 14, bold=True)
+        # Label (tipo da lixeira) - usa fonte personalizada
+        fonte_tipo = pygame.font.Font(CAMINHO_FONTE, max(12, TAMANHO_FONTE_PEQUENA))
         nome_tipo = TIPO_NOMES.get(self.tipo, "Desconhecido")
-        texto = fonte.render(nome_tipo, True, (30, 30, 30))
-        texto_rect = texto.get_rect(center=(self.rect.centerx, self.rect.y + 15))
+        texto = fonte_tipo.render(nome_tipo, True, (30, 30, 30))
+        texto_rect = texto.get_rect(center=(self.rect.centerx, self.rect.y + 18))
         superficie.blit(texto, texto_rect)
         
         # Contador de itens depositados
-        fonte_pequena = pygame.font.SysFont(NOME_FONTE, 12)
-        contador = fonte_pequena.render(f"x{self.itens_depositados}", True, (50, 50, 50))
+        fonte_contador = pygame.font.Font(CAMINHO_FONTE, max(10, TAMANHO_FONTE_PEQUENA - 2))
+        contador = fonte_contador.render(f"x{self.itens_depositados}", True, (50, 50, 50))
         superficie.blit(contador, (self.rect.x + 10, self.rect.bottom - 25))
 
 
@@ -120,8 +132,8 @@ class CentroInterfaceUI:
             pos_y = inicio_lixeiras_y + (i // 2) * 140
             self.lixeiras.append(LixeiraUI(tipo, (pos_x, pos_y)))
     
-    def atualizar_inventario(self, mochila: List[TipoLixo]):
-        """Atualiza o inventário visual com base na mochila do jogador"""
+    def atualizar_inventario(self, saco_lixo: List[TipoLixo]):
+        """Atualiza o inventário visual com base no saco de lixo do jogador"""
         self.itens_inventario.clear()
         
         # Posicionamento do inventário (lado esquerdo)
@@ -130,7 +142,7 @@ class CentroInterfaceUI:
         itens_por_linha = 4
         espaco = 70
         
-        for i, tipo_lixo in enumerate(mochila):
+        for i, tipo_lixo in enumerate(saco_lixo):
             coluna = i % itens_por_linha
             linha = i // itens_por_linha
             
@@ -204,23 +216,24 @@ class CentroInterfaceUI:
         # Fundo
         superficie.fill(COR_FUNDO)
         
-        # Títulos
-        fonte_titulo = pygame.font.SysFont(NOME_FONTE, 24, bold=True)
-        fonte_normal = pygame.font.SysFont(NOME_FONTE, 16)
+        # Fontes com tamanhos globais (usando a fonte .ttf)
+        fonte_titulo = pygame.font.Font(CAMINHO_FONTE, TAMANHO_FONTE_TITULO)
+        fonte_normal = pygame.font.Font(CAMINHO_FONTE, TAMANHO_FONTE_PADRAO)
+        fonte_pequena = pygame.font.Font(CAMINHO_FONTE, TAMANHO_FONTE_PEQUENA)
         
         # Título inventário
-        titulo_inv = fonte_titulo.render("📦 INVENTÁRIO", True, (100, 200, 100))
+        titulo_inv = fonte_titulo.render("INVENTÁRIO", True, (100, 220, 100))
         superficie.blit(titulo_inv, (50, 20))
         
         # Título lixeiras
-        titulo_lix = fonte_titulo.render("♻️ LIXEIRAS", True, (100, 200, 100))
+        titulo_lix = fonte_titulo.render("LIXEIRAS", True, (100, 220, 100))
         superficie.blit(titulo_lix, (LARGURA - 400, 20))
         
         # Instruções
-        instrucoes = fonte_normal.render("Arraste os itens para as lixeiras corretas", True, (200, 200, 200))
-        superficie.blit(instrucoes, (50, 70))
+        instrucoes = fonte_normal.render("Arraste os itens para as lixeiras corretas", True, (230, 230, 230))
+        superficie.blit(instrucoes, (50, 60))
         
-        # Desenhar lixeiras
+        # Desenhar lixeiras (cada lixeira desenha somente a si)
         for lixeira in self.lixeiras:
             lixeira.desenhar(superficie)
         
@@ -229,14 +242,14 @@ class CentroInterfaceUI:
             item.desenhar(superficie)
         
         # Informações na parte inferior
-        info = fonte_normal.render("Pressione [ESC] para sair ou [ENTER] para confirmar", True, (150, 150, 150))
-        superficie.blit(info, (50, ALTURA - 40))
+        info = fonte_pequena.render("Pressione [F] para sair ou [ENTER] para confirmar", True, (180, 180, 180))
+        superficie.blit(info, (50, ALTURA - 50))
         
         # Mostrar contagem total de itens depositados
         total_depositados = sum(l.itens_depositados for l in self.lixeiras)
-        contador_total = fonte_normal.render(f"Total Depositado: {total_depositados}", True, (100, 200, 100))
-        superficie.blit(contador_total, (LARGURA - 400, ALTURA - 40))
-    
+        contador_total = fonte_normal.render(f"Total Depositado: {total_depositados}", True, (100, 220, 100))
+        superficie.blit(contador_total, (LARGURA - 400, ALTURA - 50))
+
     def obter_total_depositado(self) -> int:
         """Retorna o total de itens depositados"""
         return sum(l.itens_depositados for l in self.lixeiras)
