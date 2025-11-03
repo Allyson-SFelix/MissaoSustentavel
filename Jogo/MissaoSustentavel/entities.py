@@ -59,7 +59,7 @@ class CentroReciclagem:
 class Jogador:
     rect: pygame.Rect
     velocidade: float = VELOCIDADE_JOGADOR
-    mochila: List[TipoLixo] = field(default_factory=list)
+    saco_lixo: List[TipoLixo] = field(default_factory=list)
     capacidade: int = 5
     dentro_centro: Optional['CentroReciclagem'] = None
     posicao_antes_centro: Optional[pygame.Rect] = None
@@ -85,34 +85,34 @@ class Jogador:
                 self.rect.y = new_rect.y
 
     def tentar_coletar(self, itens: List['Item']) -> Optional['Item']:
-        if len(self.mochila) >= self.capacidade:
+        if len(self.saco_lixo) >= self.capacidade:
             return None
         for it in itens:
             if self.rect.colliderect(it.rect):
-                self.mochila.append(it.tipo)
+                self.saco_lixo.append(it.tipo)
                 return it
         return None
 
     def tentar_depositar(self, lixeiras: List['Lixeira']) -> int:
         depositado = 0
         for l in lixeiras:
-            if self.rect.colliderect(l.rect) and self.mochila:
+            if self.rect.colliderect(l.rect) and self.saco_lixo:
                 parent = getattr(l, 'centro_pai', None)
                 if parent is not None and parent is not self.dentro_centro:
                     continue
                 restantes = []
-                for t in self.mochila:
+                for t in self.saco_lixo:
                     if l.tipo == TipoLixo.GENERICO or t == l.tipo:
                         depositado += 1
                     else:
                         restantes.append(t)
-                self.mochila = restantes
+                self.saco_lixo = restantes
         return depositado
 
     def desenhar(self, surf: pygame.Surface):
         pygame.draw.rect(surf, (255, 255, 0), self.rect, border_radius=6)
         bar_w = 40
-        filled = int(bar_w * (len(self.mochila) / self.capacidade))
+        filled = int(bar_w * (len(self.saco_lixo) / self.capacidade))
         bar = pygame.Rect(self.rect.centerx - bar_w//2, self.rect.top - 12, bar_w, 6)
         pygame.draw.rect(surf, (70,70,70), bar, border_radius=3)
         if filled > 0:
