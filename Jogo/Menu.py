@@ -1,8 +1,13 @@
 import pygame_menu
 import pygame
 import sys
-from MissaoSustentavel.missao_sustentavel.game import Jogo
-from MissaoSustentavel.missao_sustentavel.config import CAMINHO_FONTE  # importa o caminho da fonte
+import os
+from MissaoSustentavel.game import Jogo
+
+# Configura o diretório de assets
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IMG_DIR = os.path.join(BASE_DIR, "assets")
+FONTE_PERSONALIZADA = os.path.join(IMG_DIR, "BoldPixels.ttf")
 
 
 class MenuPrincipal:
@@ -10,10 +15,10 @@ class MenuPrincipal:
         self.tela = tela
         self.usuario = usuario
 
-        # Criação de um tema personalizado usando sua fonte
+        # Criação de um tema personalizado usando a fonte personalizada
         tema_personalizado = pygame_menu.themes.THEME_DARK.copy()
-        tema_personalizado.title_font = CAMINHO_FONTE
-        tema_personalizado.widget_font = CAMINHO_FONTE
+        tema_personalizado.title_font = FONTE_PERSONALIZADA
+        tema_personalizado.widget_font = FONTE_PERSONALIZADA
         tema_personalizado.title_font_size = 50
         tema_personalizado.widget_font_size = 36
         tema_personalizado.title_background_color = (20, 20, 20)
@@ -28,7 +33,7 @@ class MenuPrincipal:
         )
 
         # Logo redimensionado
-        imagem_original = pygame.image.load("assets/logo.png").convert_alpha()
+        imagem_original = pygame.image.load(os.path.join(IMG_DIR, "logo.png")).convert_alpha()
         logo_redimensionado = pygame.transform.scale(imagem_original, (652, 276))
         self.menu.add.surface(
             logo_redimensionado,
@@ -54,15 +59,14 @@ class MenuPrincipal:
                     pygame.quit()
                     sys.exit()
 
-    def carregar_game(self):
-        pass
-
     def fechar_jogo(self):
         pygame.quit()
         sys.exit()
 
     def run(self):
+        # Adicionando botões com espaçamento para melhor visual
+        self.menu.add.vertical_margin(20)  # Espaço após o logo
         self.menu.add.button('Iniciar Jogo', self.start_game)
-        self.menu.add.button('Carregar Jogo', self.carregar_game)
+        self.menu.add.vertical_margin(10)  # Espaço entre botões
         self.menu.add.button('Sair do Jogo', self.fechar_jogo)
         self.menu.mainloop(self.tela)

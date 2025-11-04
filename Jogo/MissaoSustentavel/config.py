@@ -2,7 +2,10 @@ import os
 
 LARGURA, ALTURA = 960, 600
 FPS = 60
-CAMINHO_FONTE = os.path.join("assets", "BoldPixels.ttf")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # caminho da pasta onde este arquivo está
+ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")   # sobe um nível e entra em 'assets'
+CAMINHO_FONTE = os.path.join(ASSETS_PATH, "BoldPixels.ttf")
+#CAMINHO_FONTE = os.path.join("assets", "BoldPixels.ttf")
 
 TILE = 40
 VELOCIDADE_JOGADOR = 3.5
