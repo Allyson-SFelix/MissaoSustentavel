@@ -34,7 +34,7 @@ class MenuPrincipal:
 
         # Logo redimensionado
         imagem_original = pygame.image.load(os.path.join(IMG_DIR, "logo.png")).convert_alpha()
-        logo_redimensionado = pygame.transform.scale(imagem_original, (652, 276))
+        logo_redimensionado = pygame.transform.scale(imagem_original, (612, 273))
         self.menu.add.surface(
             logo_redimensionado,
             margin=(0, 5)
