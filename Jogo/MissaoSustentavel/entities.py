@@ -31,9 +31,23 @@ class Lixeira:
         faixa = pygame.Rect(self.rect.x, self.rect.y - faixa_altura, self.rect.w, faixa_altura)
         pygame.draw.rect(surf, cor, faixa, border_radius=3)
 
-        font = pygame.font.SysFont(None, 14)
-        txt = font.render(self.tipo.name.capitalize(), True, (30, 30, 30))
-        surf.blit(txt, (self.rect.x, self.rect.y - 20))
+        # Dicionário de abreviações para os nomes
+        abreviacoes = {
+            TipoLixo.GENERICO: "Geral",
+            TipoLixo.ORGANICO: "Org",
+            TipoLixo.PLASTICO: "Plas",
+            TipoLixo.PAPEL: "Pap",
+            TipoLixo.VIDRO: "Vid",
+            TipoLixo.METAL: "Met",
+            TipoLixo.PERIGOSO: "Per"
+        }
+
+        # Usar fonte menor e nome abreviado
+        font = pygame.font.SysFont(None, 12)  # Reduzindo o tamanho da fonte
+        txt = font.render(abreviacoes[self.tipo], True, (30, 30, 30))
+        # Centralizar o texto acima da lixeira
+        texto_x = self.rect.x + (self.rect.width - txt.get_width()) // 2
+        surf.blit(txt, (texto_x, self.rect.y - 15))
 
 @dataclass
 class CentroReciclagem:
