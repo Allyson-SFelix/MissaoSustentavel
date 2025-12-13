@@ -1,13 +1,8 @@
 import pygame_menu
 import pygame
 import sys
-import os
 from MissaoSustentavel.game import Jogo
-
-# Configura o diretório de assets
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-IMG_DIR = os.path.join(BASE_DIR, "assets")
-FONTE_PERSONALIZADA = os.path.join(IMG_DIR, "BoldPixels.ttf")
+from MissaoSustentavel.config import CAMINHO_FONTE  # importa o caminho da fonte
 
 
 class MenuPrincipal:
@@ -15,10 +10,10 @@ class MenuPrincipal:
         self.tela = tela
         self.usuario = usuario
 
-        # Criação de um tema personalizado usando a fonte personalizada
+        # Criação de um tema personalizado usando sua fonte
         tema_personalizado = pygame_menu.themes.THEME_DARK.copy()
-        tema_personalizado.title_font = FONTE_PERSONALIZADA
-        tema_personalizado.widget_font = FONTE_PERSONALIZADA
+        tema_personalizado.title_font = CAMINHO_FONTE
+        tema_personalizado.widget_font = CAMINHO_FONTE
         tema_personalizado.title_font_size = 50
         tema_personalizado.widget_font_size = 36
         tema_personalizado.title_background_color = (20, 20, 20)
@@ -33,8 +28,8 @@ class MenuPrincipal:
         )
 
         # Logo redimensionado
-        imagem_original = pygame.image.load(os.path.join(IMG_DIR, "logo.png")).convert_alpha()
-        logo_redimensionado = pygame.transform.scale(imagem_original, (612, 273))
+        imagem_original = pygame.image.load("assets/logo.png").convert_alpha()
+        logo_redimensionado = pygame.transform.scale(imagem_original, (652, 276))
         self.menu.add.surface(
             logo_redimensionado,
             margin=(0, 5)
@@ -58,10 +53,6 @@ class MenuPrincipal:
                 if e.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-
-    def fechar_jogo(self):
-        pygame.quit()
-        sys.exit()
 
     def carregar_game(self):
         """Carregar jogo da fase onde o usuário parou"""
@@ -106,6 +97,11 @@ class MenuPrincipal:
         menu_aviso.add.button('Voltar', menu_aviso.disable)
         
         menu_aviso.mainloop(self.tela)
+
+    def fechar_jogo(self):
+        pygame.quit()
+        sys.exit()
+
     def run(self):
         self.menu.add.button('Iniciar Jogo', self.start_game)
         self.menu.add.button('Carregar Jogo', self.carregar_game)
