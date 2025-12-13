@@ -8,6 +8,7 @@ from .centro_interface import CentroInterfaceUI
 from .menu_fase_completa import MenuFaseCompleta
 from .menu_erro_lixeira import MenuErroLixeira
 from .menu_instrucoes import MenuInstrucoes
+from .menu_vitoria import MenuVitoria
 from .popup_saco_cheio import PopupSacoCheio
 
 class Jogo:
@@ -32,27 +33,15 @@ class Jogo:
             Nivel(4, [TipoLixo.PLASTICO, TipoLixo.VIDRO, TipoLixo.ORGANICO, TipoLixo.PAPEL, TipoLixo.METAL, TipoLixo.PERIGOSO], meta_itens=12, inimigo=True),
         ]
         self.usuario = usuario
-        self.atual = max(0, min(fase_inicial, len(self.niveis) - 1))  # Garante que seja válido
+        self.atual = max(0, min(fase_inicial, len(self.niveis) - 1))
         self.estado = "jogando"
-        
-        # Interface do centro de reciclagem
         self.interface_centro = None
-        
-        # Menu de conclusão de fase
         self.menu_fase_completa = None
-        
-        # Menu de erro de lixeira
         self.menu_erro_lixeira = None
-        
-        # Menu de instruções
         self.menu_instrucoes = None
-        
-        # Popup de saco cheio
+        self.menu_vitoria = None
         self.popup_saco_cheio = None
-        
-        # Mostrar ícone do centro
         self.mostrar_icone_centro = False
-        
         self._carregar_nivel()
 
     def _carregar_nivel(self):
@@ -496,11 +485,12 @@ class Jogo:
             self._desenhar_texto("Você foi pego! Pressione R para tentar novamente ou ESC para ir pro menu.", (150, ALTURA//2))
         
         elif self.estado == "vitoria":
-            mensagem = f"Parabéns, {self.usuario.username}! Você salvou o planeta e concluiu a Missão Sustentável!"
-            self._desenhar_texto(mensagem, (150, ALTURA // 2))
-
-            texto_voltar = "Aperte [ESC] para voltar para o menu"
-            self._desenhar_texto(texto_voltar, (150, ALTURA // 2 + 60))
+            # Criar menu de vitória na primeira vez
+            if not self.menu_vitoria:
+                self.menu_vitoria = MenuVitoria(self.usuario.username)
+            
+            # Desenhar a tela de vitória
+            self.menu_vitoria.desenhar(self.screen)
         
         # Desenhar popup de saco cheio se houver
         if self.popup_saco_cheio:
