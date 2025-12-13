@@ -63,6 +63,31 @@ class MenuPrincipal:
         pygame.quit()
         sys.exit()
 
+    def carregar_game(self):
+        """Carregar jogo da fase onde o usuário parou"""
+        # Se o usuário tem um faseAtual válido (maior que 0), carrega de lá
+        if self.usuario.faseAtual > 0:
+            self.menu.disable()
+            jogo = Jogo(self.usuario, fase_inicial=self.usuario.faseAtual)
+            jogo.executar()
+            
+            # Quando o jogador sai do jogo (com ESC), volta ao menu principal
+            self.menu.enable()
+            while True:
+                eventos = pygame.event.get()
+                if self.menu.is_enabled():
+                    self.menu.update(eventos)
+                    self.menu.draw(self.tela)
+                pygame.display.flip()
+
+                for e in eventos:
+                    if e.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+        else:
+            # Sem progresso salvo - mostra mensagem
+            self._mostrar_aviso_sem_progresso()
+
     def _mostrar_aviso_sem_progresso(self):
         """Mostra um aviso informando que não há progresso salvo"""
         tema_aviso = pygame_menu.themes.THEME_DARK.copy()
@@ -82,9 +107,7 @@ class MenuPrincipal:
         
         menu_aviso.mainloop(self.tela)
     def run(self):
-        # Adicionando botões com espaçamento para melhor visual
-        self.menu.add.vertical_margin(20)  # Espaço após o logo
         self.menu.add.button('Iniciar Jogo', self.start_game)
-        self.menu.add.vertical_margin(10)  # Espaço entre botões
+        self.menu.add.button('Carregar Jogo', self.carregar_game)
         self.menu.add.button('Sair do Jogo', self.fechar_jogo)
         self.menu.mainloop(self.tela)
