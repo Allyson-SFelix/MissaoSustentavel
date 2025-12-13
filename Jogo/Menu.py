@@ -63,6 +63,24 @@ class MenuPrincipal:
         pygame.quit()
         sys.exit()
 
+    def _mostrar_aviso_sem_progresso(self):
+        """Mostra um aviso informando que não há progresso salvo"""
+        tema_aviso = pygame_menu.themes.THEME_DARK.copy()
+        tema_aviso.title_font_size = 35
+        tema_aviso.widget_font_size = 28
+        
+        menu_aviso = pygame_menu.Menu(
+            'Sem Progresso',
+            800,
+            250,
+            theme=tema_aviso
+        )
+        
+        menu_aviso.add.label('Nenhum progresso salvo!')
+        menu_aviso.add.label('Comece um novo jogo.')
+        menu_aviso.add.button('Voltar', menu_aviso.disable)
+        
+        menu_aviso.mainloop(self.tela)
     def run(self):
         # Adicionando botões com espaçamento para melhor visual
         self.menu.add.vertical_margin(20)  # Espaço após o logo
