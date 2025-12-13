@@ -1,7 +1,7 @@
 import pygame
 from dataclasses import dataclass, field
 from typing import List, Optional
-from .enums import TipoLixo, TIPO_IMAGENS, CORES_LIXEIRA
+from .enums import TipoLixo, TIPO_IMAGENS, CORES_LIXEIRA, IMAGEM_PERSONAGEM, IMAGEM_MONSTRO
 from .config import TILE, VELOCIDADE_JOGADOR
 
 @dataclass
@@ -20,7 +20,6 @@ class Lixeira:
     tipo: TipoLixo
 
     def desenhar(self, surf: pygame.Surface):
-
         cor = CORES_LIXEIRA.get(self.tipo, (200, 200, 200))
 
         pygame.draw.rect(surf, cor, self.rect, border_radius=6)
@@ -31,7 +30,6 @@ class Lixeira:
         faixa = pygame.Rect(self.rect.x, self.rect.y - faixa_altura, self.rect.w, faixa_altura)
         pygame.draw.rect(surf, cor, faixa, border_radius=3)
 
-        # Dicionário de abreviações para os nomes
         abreviacoes = {
             TipoLixo.GENERICO: "Geral",
             TipoLixo.ORGANICO: "Org",
@@ -42,10 +40,8 @@ class Lixeira:
             TipoLixo.PERIGOSO: "Per"
         }
 
-        # Usar fonte menor e nome abreviado
-        font = pygame.font.SysFont(None, 12)  # Reduzindo o tamanho da fonte
+        font = pygame.font.SysFont(None, 12)
         txt = font.render(abreviacoes[self.tipo], True, (30, 30, 30))
-        # Centralizar o texto acima da lixeira
         texto_x = self.rect.x + (self.rect.width - txt.get_width()) // 2
         surf.blit(txt, (texto_x, self.rect.y - 15))
 
@@ -124,7 +120,14 @@ class Jogador:
         return depositado
 
     def desenhar(self, surf: pygame.Surface):
-        pygame.draw.rect(surf, (255, 255, 0), self.rect, border_radius=6)
+        # Desenhar imagem grande (80x80) centralizada sobre o rect pequeno (28x28)
+        tamanho_imagem = 80
+        imagem_redimensionada = pygame.transform.scale(IMAGEM_PERSONAGEM, (tamanho_imagem, tamanho_imagem))
+        # Centralizar a imagem sobre o centro do rect
+        imagem_rect = imagem_redimensionada.get_rect(center=self.rect.center)
+        surf.blit(imagem_redimensionada, imagem_rect)
+        
+        # Desenhar barra de capacidade do saco de lixo acima do personagem
         bar_w = 40
         filled = int(bar_w * (len(self.saco_lixo) / self.capacidade))
         bar = pygame.Rect(self.rect.centerx - bar_w//2, self.rect.top - 12, bar_w, 6)
@@ -150,4 +153,9 @@ class Inimigo:
         self.rect.clamp_ip(limites)
 
     def desenhar(self, surf: pygame.Surface):
-        pygame.draw.rect(surf, (255, 60, 60), self.rect, border_radius=6)
+        # Desenhar imagem grande (80x80) centralizada sobre o rect pequeno (28x28)
+        tamanho_imagem = 80
+        imagem_redimensionada = pygame.transform.scale(IMAGEM_MONSTRO, (tamanho_imagem, tamanho_imagem))
+        # Centralizar a imagem sobre o centro do rect
+        imagem_rect = imagem_redimensionada.get_rect(center=self.rect.center)
+        surf.blit(imagem_redimensionada, imagem_rect)
