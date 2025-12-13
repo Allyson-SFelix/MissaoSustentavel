@@ -26,6 +26,10 @@ TIPO_IMAGENS = {
     TipoLixo.PERIGOSO: pygame.image.load(os.path.join(IMG,"perigoso.png")),
 }
 
+
+IMAGEM_PERSONAGEM = pygame.image.load(os.path.join(IMG,"Personagem2d.png"))
+IMAGEM_MONSTRO = pygame.image.load(os.path.join(IMG,"Monstro2d.png"))
+
 TIPO_NOMES = {
     TipoLixo.GENERICO: "Geral",
     TipoLixo.ORGANICO: "Orgânico",
