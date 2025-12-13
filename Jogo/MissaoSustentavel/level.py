@@ -1,19 +1,16 @@
 import random
 import pygame
-import os
 from typing import List, Optional, Tuple
 from .enums import TipoLixo
 from .entities import Item, Lixeira, Inimigo, CentroReciclagem
 from .config import LARGURA, ALTURA, TILE
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
 class Nivel:
     """Gerencia o cenário, inimigo, lixeiras e lixo do jogo."""
 
     def __init__(self, numero: int, tipos_bilhetes: List[TipoLixo], meta_itens: int, inimigo: bool = False):
         self.background_image = pygame.transform.scale(
-            pygame.image.load(os.path.join(ASSETS_PATH, "cenario.png")).convert(),
+            pygame.image.load("assets/cenario.png").convert(),
             (LARGURA, ALTURA)
         )
         self.numero = numero
@@ -26,14 +23,10 @@ class Nivel:
         self.com_inimigo = inimigo
         self.inimigo: Optional[Inimigo] = Inimigo(pygame.Rect(LARGURA - 80, ALTURA - 80, 28, 28), velocidade=2.2) if inimigo else None
 
-        # mapa de tiles: 0=chão, 2=água
         self.map_cols = LARGURA // TILE
         self.map_rows = ALTURA // TILE
         self.bg_map = [[0 for _ in range(self.map_cols)] for __ in range(self.map_rows)]
 
-    # =========================================================
-    # MÉTODOS PRINCIPAIS
-    # =========================================================
     def spawn(self):
         """Gera o mapa, água, centros de reciclagem, inimigo e itens."""
         self._gerar_agua()
@@ -120,7 +113,6 @@ class Nivel:
                     self.inimigo.rect.topleft = pos
                     if not cent.rect.colliderect(self.inimigo.rect):
                         return
-                # fallback
                 self.inimigo.rect.topleft = (cent.rect.left - 40, cent.rect.top - 40)
 
     def _gerar_itens(self):
