@@ -11,29 +11,25 @@ class MenuFaseCompleta:
 
     def __init__(self, numero_fase: int):
         self.numero_fase = numero_fase
-        self.eh_ultima = self.numero_fase == 4  # a fase 4 é a última
-        self.acao_selecionada = None  # "proxima" ou "menu_principal"
+        self.eh_ultima = self.numero_fase == 4
+        self.acao_selecionada = None
 
-        # Fontes
         self.font_titulo = pygame.font.SysFont(NOME_FONTE, 72, bold=True)
         self.font_mensagem = pygame.font.SysFont(NOME_FONTE, 36)
         self.font_instrucao = pygame.font.SysFont(NOME_FONTE, 28, bold=True)
 
-        # Timer
         self.tempo_inicio = pygame.time.get_ticks()
 
     def desenhar(self, surf: pygame.Surface):
         """Desenha a tela de fase completa (somente se não for a última)"""
         if self.eh_ultima:
-            return  # não desenha nada na última fase
+            return
 
-        # Fundo semi-transparente
         overlay = pygame.Surface((LARGURA, ALTURA))
         overlay.set_alpha(120)
         overlay.fill((0, 0, 0))
         surf.blit(overlay, (0, 0))
 
-        # --- Título ---
         titulo = "FASE COMPLETA!"
         titulo_sombra = self.font_titulo.render(titulo, True, (0, 0, 0))
         titulo_surf = self.font_titulo.render(titulo, True, (255, 255, 100))
@@ -41,20 +37,17 @@ class MenuFaseCompleta:
         surf.blit(titulo_sombra, (titulo_rect.x + 3, titulo_rect.y + 3))
         surf.blit(titulo_surf, titulo_rect)
 
-        # --- Mensagem de conclusão ---
         mensagem = f"Fase {self.numero_fase} concluída com sucesso!"
         mensagem_surf = self.font_mensagem.render(mensagem, True, (255, 255, 255))
         mensagem_rect = mensagem_surf.get_rect(center=(LARGURA // 2, ALTURA // 2 - 40))
         surf.blit(mensagem_surf, mensagem_rect)
 
-        # --- Instrução (com quebra de linha manual) ---
         instrucao = (
             "Aperte [ESPAÇO] para avançar para o próximo nível\n"
             "[ESC] para voltar ao menu"
         )
         linhas = instrucao.split("\n")
 
-        # Posição vertical inicial (um pouco abaixo da mensagem)
         y_base = ALTURA // 2 + 60
         for i, linha in enumerate(linhas):
             instrucao_surf = self.font_instrucao.render(linha, True, (200, 200, 200))
@@ -66,6 +59,9 @@ class MenuFaseCompleta:
         if tecla == pygame.K_SPACE:
             self.acao_selecionada = "proxima"
             return "proxima"
+        elif tecla == pygame.K_ESCAPE:
+            self.acao_selecionada = "menu_principal"
+            return "menu_principal"
         return None
 
     def obter_acao(self):
