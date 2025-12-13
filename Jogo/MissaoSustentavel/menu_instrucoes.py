@@ -12,16 +12,14 @@ class MenuInstrucoes:
     def __init__(self, numero_fase: int):
         self.numero_fase = numero_fase
         self.tempo_inicio = pygame.time.get_ticks()
-        self.duracao = 4000  # 4 segundos em milissegundos
-        self.trava_pular = 4000  # tempo mínimo antes de poder pular
+        self.duracao = 10000
+        self.trava_pular = 10000
 
-        # Fontes
         self.font_titulo = pygame.font.SysFont(NOME_FONTE, 48, bold=True)
         self.font_grande = pygame.font.SysFont(NOME_FONTE, 36, bold=True)
         self.font_media = pygame.font.SysFont(NOME_FONTE, 28)
         self.font_pequena = pygame.font.SysFont(NOME_FONTE, 22)
 
-        # Contextos das ODS por fase
         self.contextos = {
             1: "ODS 12: Consumo e Produção Responsável\nColeta lixo genérico para reciclagem!",
             2: "ODS 12: Consumo e Produção Responsável\nSepare orgânico de plástico corretamente!",
@@ -31,22 +29,18 @@ class MenuInstrucoes:
 
     def desenhar(self, surf: pygame.Surface):
         """Desenha a tela de instruções"""
-        # Fundo semi-transparente
         overlay = pygame.Surface((LARGURA, ALTURA))
         overlay.set_alpha(200)
         overlay.fill((20, 26, 30))
         surf.blit(overlay, (0, 0))
 
-        # Título da fase
         titulo = f"FASE {self.numero_fase:02d}"
         titulo_surf = self.font_titulo.render(titulo, True, (255, 215, 0))
         titulo_rect = titulo_surf.get_rect(center=(LARGURA // 2, 60))
         surf.blit(titulo_surf, titulo_rect)
 
-        # Linha separadora
         pygame.draw.line(surf, (100, 200, 100), (100, 120), (LARGURA - 100, 120), 3)
 
-        # Objetivo do jogo
         y_offset = 140
         objetivo_titulo = self.font_grande.render("OBJETIVO:", True, (255, 100, 100))
         surf.blit(objetivo_titulo, (100, y_offset))
@@ -62,18 +56,14 @@ class MenuInstrucoes:
         surf.blit(objetivo_surf2, (110, y_offset))
         y_offset += 40
 
-        # Segunda linha separadora
         pygame.draw.line(surf, (100, 200, 100), (100, y_offset + 10), (LARGURA - 100, y_offset + 10), 3)
 
-        # Instruções de movimentação
         y_offset += 30
 
-        # Título das instruções
         instr_titulo = self.font_grande.render("MOVIMENTAÇÃO:", True, (100, 220, 100))
         surf.blit(instr_titulo, (100, y_offset))
         y_offset += 60
 
-        # Instruções individuais
         instrucoes = [
             ("W", "Mover para CIMA"),
             ("S", "Mover para BAIXO"),
@@ -81,7 +71,6 @@ class MenuInstrucoes:
             ("A", "Mover para ESQUERDA"),
         ]
 
-        # Salvar y_offset inicial para MOVIMENTAÇÃO
         y_mov_inicio = y_offset
         y_mov = y_mov_inicio
         for tecla, descricao in instrucoes:
@@ -98,13 +87,11 @@ class MenuInstrucoes:
 
             y_mov += 50
 
-        # Outros controles ao lado (começar na mesma altura da MOVIMENTAÇÃO)
         outros_titulo = self.font_grande.render("OUTROS CONTROLES:", True, (100, 200, 255))
         surf.blit(outros_titulo, (LARGURA // 2 + 50, y_mov_inicio - 60))
 
-        # Outros controles
         outros_controles = [
-            ("ESPAÇO", "Pegar item", 90),  # Botão maior para ESPAÇO
+            ("ESPAÇO", "Pegar item", 90),
             ("F", "Entrar no Centro", 40),
             ("R", "Reiniciar fase", 40),
             ("ESC", "Ir para o menu", 40),
@@ -126,13 +113,8 @@ class MenuInstrucoes:
             surf.blit(desc_surf, (desc_x, y_outros + 8))
 
             y_outros += 50
-
-        # Calcular o y_offset final (usar o maior dos dois)
         y_offset = max(y_mov, y_outros)
 
-        # (Linha separadora removida daqui)
-
-        # Contexto e ODS
         y_offset += 60
         contexto = self.contextos.get(self.numero_fase, "Ajude a salvar o planeta!")
         linhas = contexto.split("\n")
@@ -146,7 +128,6 @@ class MenuInstrucoes:
             surf.blit(linha_surf, linha_rect)
             y_offset += 45
 
-        # Instrução para continuar (só aparece após 4 segundos)
         tempo_decorrido = pygame.time.get_ticks() - self.tempo_inicio
         y_offset += 30
         if tempo_decorrido >= self.trava_pular:
@@ -160,7 +141,6 @@ class MenuInstrucoes:
         continua_rect = continua.get_rect(center=(LARGURA // 2, y_offset))
         surf.blit(continua, continua_rect)
 
-        # Barra de progresso
         progresso = (pygame.time.get_ticks() - self.tempo_inicio) / self.duracao
         progresso = min(progresso, 1.0)
         barra_y = ALTURA - 30
