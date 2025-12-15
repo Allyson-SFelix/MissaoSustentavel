@@ -53,15 +53,15 @@ class ItemDragavel:
     
     def desenhar(self, superficie: pygame.Surface):
         """Desenha o item"""
+        pygame.draw.rect(superficie, (240, 240, 240), self.rect, border_radius=5)
+        
         try:
             imagem = TIPO_IMAGENS[self.tipo]
             imagem_redimensionada = pygame.transform.scale(imagem, (self.rect.w, self.rect.h))
             superficie.blit(imagem_redimensionada, self.rect)
         except Exception:
-            # Fallback se a imagem não carregar
             pygame.draw.rect(superficie, (200, 200, 200), self.rect, border_radius=5)
         
-        # Desenhar borda se sendo arrastado
         if self.sendo_arrastado:
             pygame.draw.rect(superficie, (255, 255, 0), self.rect, 3, border_radius=5)
         else:

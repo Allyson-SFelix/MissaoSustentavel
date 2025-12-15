@@ -12,10 +12,8 @@ class PopupSacoCheio:
 
     def __init__(self):
         self.tempo_inicio = pygame.time.get_ticks()
-        self.duracao = 3000  # 3 segundos em milissegundos
+        self.duracao = 10000
         self.mostrar = True
-
-        # Fonte
         self.font_titulo = pygame.font.SysFont(NOME_FONTE, 26, bold=True)
         self.font_texto = pygame.font.SysFont(NOME_FONTE, 22)
 
@@ -24,7 +22,6 @@ class PopupSacoCheio:
         if not self.mostrar:
             return
 
-        # Dimensões da caixinha
         largura_caixa = 320
         altura_caixa = 80
         margem = 20
@@ -32,21 +29,17 @@ class PopupSacoCheio:
         x = LARGURA - largura_caixa - margem
         y = margem
 
-        # Fundo da caixa
         pygame.draw.rect(surf, (40, 40, 40), (x, y, largura_caixa, altura_caixa), border_radius=10)
         pygame.draw.rect(surf, (255, 215, 0), (x, y, largura_caixa, altura_caixa), 2, border_radius=10)
 
-        # Título
         titulo = "Mochila cheia!"
         titulo_surf = self.font_titulo.render(titulo, True, (255, 215, 0))
         surf.blit(titulo_surf, (x + 15, y + 10))
 
-        # Mensagem
         mensagem = "Vá ao centro de reciclagem."
         msg_surf = self.font_texto.render(mensagem, True, (230, 230, 230))
         surf.blit(msg_surf, (x + 15, y + 40))
 
-        # Barra de progresso simples
         progresso = (pygame.time.get_ticks() - self.tempo_inicio) / self.duracao
         progresso = min(progresso, 1.0)
 
