@@ -73,11 +73,16 @@ class Jogador:
     capacidade: int = 5
     dentro_centro: Optional['CentroReciclagem'] = None
     posicao_antes_centro: Optional[pygame.Rect] = None
+    virado_esquerda: bool = False
 
     def mover(self, keys, limites: pygame.Rect, nivel=None):
         dx = dy = 0
-        if keys[pygame.K_a] or keys[pygame.K_LEFT]: dx -= self.velocidade
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]: dx += self.velocidade
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]: 
+            dx -= self.velocidade
+            self.virado_esquerda = True
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]: 
+            dx += self.velocidade
+            self.virado_esquerda = False
         if keys[pygame.K_w] or keys[pygame.K_UP]: dy -= self.velocidade
         if keys[pygame.K_s] or keys[pygame.K_DOWN]: dy += self.velocidade
 
@@ -120,14 +125,15 @@ class Jogador:
         return depositado
 
     def desenhar(self, surf: pygame.Surface):
-        # Desenhar imagem grande (80x80) centralizada sobre o rect pequeno (28x28)
         tamanho_imagem = 80
         imagem_redimensionada = pygame.transform.scale(IMAGEM_PERSONAGEM, (tamanho_imagem, tamanho_imagem))
-        # Centralizar a imagem sobre o centro do rect
+        
+        if self.virado_esquerda:
+            imagem_redimensionada = pygame.transform.flip(imagem_redimensionada, True, False)
+
         imagem_rect = imagem_redimensionada.get_rect(center=self.rect.center)
         surf.blit(imagem_redimensionada, imagem_rect)
         
-        # Desenhar barra de capacidade do saco de lixo acima do personagem
         bar_w = 40
         filled = int(bar_w * (len(self.saco_lixo) / self.capacidade))
         bar = pygame.Rect(self.rect.centerx - bar_w//2, self.rect.top - 12, bar_w, 6)
@@ -153,9 +159,7 @@ class Inimigo:
         self.rect.clamp_ip(limites)
 
     def desenhar(self, surf: pygame.Surface):
-        # Desenhar imagem grande (80x80) centralizada sobre o rect pequeno (28x28)
         tamanho_imagem = 80
         imagem_redimensionada = pygame.transform.scale(IMAGEM_MONSTRO, (tamanho_imagem, tamanho_imagem))
-        # Centralizar a imagem sobre o centro do rect
         imagem_rect = imagem_redimensionada.get_rect(center=self.rect.center)
         surf.blit(imagem_redimensionada, imagem_rect)
