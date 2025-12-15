@@ -1,8 +1,8 @@
 import pygame_menu
 import pygame
 import sys
-from MissaoSustentavel.game import Jogo
-from MissaoSustentavel.config import CAMINHO_FONTE  # importa o caminho da fonte
+from MissaoSustentavel.missao_sustentavel.game import Jogo
+from MissaoSustentavel.missao_sustentavel.config import CAMINHO_FONTE  # importa o caminho da fonte
 
 
 class MenuPrincipal:

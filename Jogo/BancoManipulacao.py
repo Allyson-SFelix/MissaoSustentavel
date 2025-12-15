@@ -1,7 +1,7 @@
 import json
 import os
 from Model.users import User
-from StaticDefs.PreCond import PreCond
+from PreCond import PreCond
 
 # pega o diretório onde o arquivo BancoManipulacao.py está
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -37,7 +37,7 @@ class BancoManip:
             self.criarDict(username)
             self.escrever()
             return User(username,0)
-
+                
     def criarArquivo(self):
         with open(ARQUIVO_JSON,"w") as arquivo:
             json.dump({}, arquivo, indent=2)
@@ -60,10 +60,3 @@ class BancoManip:
 
 
 
-
-banco = BancoManip()
-
-resposta=banco.inicializarAcessoBanco("tatu")
-print(resposta)
-booResposta=banco.atualizarFaseAtual(User("tatu",2))
-print(booResposta)

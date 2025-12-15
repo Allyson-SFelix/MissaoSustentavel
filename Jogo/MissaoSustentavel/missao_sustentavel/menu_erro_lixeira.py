@@ -47,7 +47,7 @@ class MenuErroLixeira:
         pygame.draw.rect(surf, (255, 0, 0), (caixa_x, caixa_y, caixa_width, caixa_height), 3)
         
         # Título de erro
-        titulo = "❌ ERRO! LIXEIRA ERRADA"
+        titulo = "ERRO! LIXEIRA ERRADA"
         titulo_surf = self.font_grande.render(titulo, True, (255, 100, 100))
         titulo_rect = titulo_surf.get_rect(center=(LARGURA // 2, caixa_y + 40))
         surf.blit(titulo_surf, titulo_rect)

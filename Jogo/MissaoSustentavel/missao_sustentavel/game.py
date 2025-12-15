@@ -10,6 +10,10 @@ from .menu_erro_lixeira import MenuErroLixeira
 from .menu_instrucoes import MenuInstrucoes
 from .menu_vitoria import MenuVitoria
 from .popup_saco_cheio import PopupSacoCheio
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from BancoManipulacao import BancoManip
 
 class Jogo:
     def __init__(self, usuario, fase_inicial=0):
@@ -42,6 +46,7 @@ class Jogo:
         self.menu_vitoria = None
         self.popup_saco_cheio = None
         self.mostrar_icone_centro = False
+        self.banco = BancoManip()
         self._carregar_nivel()
 
     def _carregar_nivel(self):
@@ -531,12 +536,25 @@ class Jogo:
         while rodando:
             self.clock.tick(FPS)
             if not self.processar_eventos():
+                # Salvar progresso antes de sair
+                self._salvar_progresso()
                 break
 
             # Atualiza sempre, pois o método já trata o estado internamente
             self.atualizar()
 
             self.desenhar()
+
+    def _salvar_progresso(self):
+        """Salva o progresso do jogador no banco de dados"""
+        if self.usuario and self.usuario.username:
+            try:
+                self.banco.ler()  # Carrega dados atualizados
+                self.usuario.faseAtual = self.atual
+                self.banco.atualizarFaseAtual(self.usuario)
+                print(f"Progresso salvo: {self.usuario.username} - Fase {self.atual}")
+            except Exception as e:
+                print(f"Erro ao salvar progresso: {e}")
 
 def executar_jogo():
     Jogo(None).executar()
