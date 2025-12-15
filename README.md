@@ -46,24 +46,20 @@ O jogo progressivamente aumenta a dificuldade, introduzindo novos tipos de lixo 
 
 ### Passo 1: Clonar o repositório
 ```bash
-git clone https://github.com/lailsonzw/Test-privado.git
-cd Test-privado
+git clone https://github.com/Allyson-SFelix/MissaoSustentavel
+cd MissaoSustentavel
+```
 ```
 
-### Passo 2: Criar ambiente virtual (opcional, mas recomendado)
-```bash
-python -m venv venv
-source venv/bin/activate  # No Windows: venv\Scripts\activate
-```
-
-### Passo 3: Instalar dependências
+### Passo 2: Instalar dependências
 ```bash
 pip install -r requirements.txt
 ```
 
-### Passo 4: Executar o jogo
+### Passo 3: Executar o jogo
 ```bash
-python main.py [memory:1]
+cd Jogo
+python main.py
 ```
 
 ## Dependências
@@ -74,46 +70,6 @@ As dependências principais são:
 - pyperclip (1.11.0+) - Manipulação de área de transferência
 
 Todas as dependências estão listadas em dependencias.md e requirements.txt.
-
-## Estrutura do Projeto
-
-```
-Test-privado/
-├── main.py                  # Ponto de entrada principal
-├── Menu.py                  # Interface de menu
-├── BancoManipulacao.py      # Gerenciamento de dados
-├── PreCond.py               # Pré-condições
-├── usernameTela.py          # Tela de nome de usuário
-├── requirements.txt         # Dependências Python
-├── dependencias.md          # Lista de dependências
-│
-├── MissaoSustentavel/
-│   └── missao_sustentavel/
-│       ├── __init__.py
-│       ├── config.py        # Configurações (resolução, cores, etc)
-│       ├── enums.py         # Enumerações (tipos de lixo)
-│       ├── entities.py      # Classes de entidades (Jogador, Item, Lixeira)
-│       ├── game.py          # Lógica principal do jogo
-│       ├── level.py         # Gerenciamento de fases
-│       ├── menu_instrucoes.py # Menu de instruções
-│       ├── menu_fase_completa.py # Tela de fase concluída
-│       ├── menu_erro_lixeira.py # Popup de erro de classificação
-│       ├── menu_vitoria.py    # Tela de vitória final
-│       ├── popup_saco_cheio.py  # Popup de mochila cheia
-│       ├── centro_interface.py  # Interface do centro de reciclagem
-│       └── README.md        # Documentação técnica
-│
-├── Model/
-│   └── users.py             # Modelo de usuários
-│
-├── DataBase/
-│   └── BD.json              # Banco de dados (JSON)
-│
-├── assets/
-│   └── cenario.png          # Imagem de fundo do jogo
-│
-└── __pycache__/             # Cache Python [memory:1]
-```
 
 ## Tipos de Lixo
 
@@ -165,4 +121,4 @@ Este projeto é de código aberto e disponível sob a licença MIT.
 
 ## Equipe
 
-Desenvolvido por Allyson Felix, Carlos Abrantes, Francisco Lailson, Francisco Daniel
+Desenvolvido por Allyson Felix, Carlos Abrantes, Francisco Lailson, Francisco Daniel.
