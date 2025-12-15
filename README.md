@@ -1,12 +1,12 @@
 # Missão Sustentável
 
-Um jogo educativo interativo desenvolvido em Python com Pygame, focado em ensinar sobre Objetivos de Desenvolvimento Sustentável (ODS), especificamente a ODS 12: Consumo e Produção Responsável.[1]
+Um jogo educativo interativo desenvolvido em Python com Pygame, focado em ensinar sobre Objetivos de Desenvolvimento Sustentável (ODS), especificamente a ODS 12: Consumo e Produção Responsável.
 
 ## Sobre o Jogo
 
-Missão Sustentável é um jogo casual onde o jogador assume o papel de um coletor de lixo responsável. O objetivo é coletar diferentes tipos de lixo espalhados pelo mapa e classificá-los corretamente em lixeiras específicas no Centro de Reciclagem.[1]
+Missão Sustentável é um jogo casual onde o jogador assume o papel de um coletor de lixo responsável. O objetivo é coletar diferentes tipos de lixo espalhados pelo mapa e classificá-los corretamente em lixeiras específicas no Centro de Reciclagem.
 
-O jogo progressivamente aumenta a dificuldade, introduzindo novos tipos de lixo a cada fase e, na fase final, o jogador enfrenta um desafio contra o tempo enquanto evita um obstáculo móvel.[1]
+O jogo progressivamente aumenta a dificuldade, introduzindo novos tipos de lixo a cada fase e, na fase final, o jogador enfrenta um desafio contra o tempo enquanto evita um obstáculo móvel.
 
 ## Características
 
@@ -16,16 +16,7 @@ O jogo progressivamente aumenta a dificuldade, introduzindo novos tipos de lixo 
 - Inimigo Inteligente - Na fase 4, um obstáculo persegue o jogador
 - Interface Intuitiva - Menu principal e telas de instruções claras
 - Sistema de Progresso - Complete fases para desbloquear conteúdo
-- Feedback Visual - Popups informativos durante o gameplay[1]
-
-## Fases do Jogo
-
-| Fase | Objetivo | Tipos de Lixo | Meta | Dificuldade | Inimigo |
-|------|----------|---------------|------|-------------|---------|
-| 1 | Coleta básica | Genérico | 5 itens | Fácil | Não |
-| 2 | Separação dupla | Orgânico, Plástico | 8 itens | Intermediário | Não |
-| 3 | Separação múltipla | Papel, Vidro, Metal, Orgânico | 12 itens | Difícil | Não |
-| 4 | Desafio final | Todos (6 tipos) | 12 itens | Muito Difícil | Sim [1] |
+- Feedback Visual - Popups informativos durante o gameplay
 
 ## Controles
 
@@ -36,7 +27,7 @@ O jogo progressivamente aumenta a dificuldade, introduzindo novos tipos de lixo 
 | W / Seta ↑ | Mover para cima |
 | S / Seta ↓ | Mover para baixo |
 | A / Seta ← | Mover para esquerda |
-| D / Seta → | Mover para direita [1] |
+| D / Seta → | Mover para direita |
 
 ### Ações
 
@@ -45,13 +36,13 @@ O jogo progressivamente aumenta a dificuldade, introduzindo novos tipos de lixo 
 | ESPAÇO | Pegar item (quando sobre o item) |
 | F | Entrar no Centro de Reciclagem |
 | R | Reiniciar fase |
-| ESC | Voltar ao menu principal [1] |
+| ESC | Voltar ao menu principal |
 
 ## Instalação
 
 ### Pré-requisitos
 - Python 3.10 ou superior
-- pip (gerenciador de pacotes Python)[1]
+- pip (gerenciador de pacotes Python)
 
 ### Passo 1: Clonar o repositório
 ```bash
@@ -82,7 +73,7 @@ As dependências principais são:
 - pygame-menu (4.5.2+) - Sistema de menu
 - pyperclip (1.11.0+) - Manipulação de área de transferência
 
-Todas as dependências estão listadas em dependencias.md e requirements.txt.[1]
+Todas as dependências estão listadas em dependencias.md e requirements.txt.
 
 ## Estrutura do Projeto
 
@@ -133,7 +124,7 @@ O jogo trabalha com os seguintes tipos de lixo, cada um com uma cor específica 
 - Papel - Papéis e papelão
 - Vidro - Garrafas e vidros
 - Metal - Latas e metais
-- Perigoso - Materiais perigosos (baterias, etc)[1]
+- Perigoso - Materiais perigosos (baterias, etc)
 
 ## Desenvolvimento
 
@@ -144,7 +135,7 @@ O projeto utiliza uma arquitetura orientada a objetos com as seguintes camadas:
 - Camada de Entidades (entities.py) - Objetos do jogo
 - Camada de Lógica (game.py, level.py) - Lógica principal
 - Camada de UI (menu_instrucoes.py, etc) - Interface com usuário
-- Camada de Banco de Dados (Model/, DataBase/) - Persistência de dados[1]
+- Camada de Banco de Dados (Model/, DataBase/) - Persistência de dados
 
 ## Estatísticas do Jogo
 
@@ -154,24 +145,24 @@ O projeto utiliza uma arquitetura orientada a objetos com as seguintes camadas:
 - Velocidade do Jogador: 3.5 tiles/frame
 - Velocidade do Inimigo: 2.4 tiles/frame
 - Resolução: 960x600 pixels
-- FPS: 60[1]
+- FPS: 60
 
 ## Conceitos ODS Abordados
 
 ### ODS 12 - Consumo e Produção Responsável
 - Compreender a importância da reciclagem
 - Aprender a separar resíduos corretamente
-- Reconhecer diferentes tipos de materiais[1]
+- Reconhecer diferentes tipos de materiais
 
 ### ODS 13 - Ação Climática
 - Entender o impacto ambiental do lixo
 - Promover ações sustentáveis
-- Conscientizar sobre mudanças climáticas[1]
+- Conscientizar sobre mudanças climáticas
 
 ## Licença
 
-Este projeto é de código aberto e disponível sob a licença MIT.[1]
+Este projeto é de código aberto e disponível sob a licença MIT.
 
 ## Equipe
 
-Desenvolvido por Allyson Felix, Carlos Abrantes, Francisco Lailson, Francisco Daniel[1]
+Desenvolvido por Allyson Felix, Carlos Abrantes, Francisco Lailson, Francisco Daniel
